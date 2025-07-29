@@ -1,0 +1,46 @@
+/* components/BorderWrapper.css */
+.border-wrapper {
+  position: relative; /* Essential for positioning the tooltip */
+  /* Add any existing BorderWrapper styles here */
+}
+
+.chart-tooltip {
+  position: absolute;
+  background-color: rgba(0, 0, 0, 0.85);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 14px;
+  max-width: 300px;
+  z-index: 1000;
+  pointer-events: none;
+
+  /* ✨ Updated Positioning to show inside the chart */
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Show tooltip on hover */
+.border-wrapper:hover .chart-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Optional: Add a small arrow for better visual cue */
+.chart-tooltip::before {
+  content: '';
+  position: absolute;
+  bottom: 100%; /* Position above the tooltip */
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: transparent transparent rgba(0, 0, 0, 0.85) transparent;
+}
+

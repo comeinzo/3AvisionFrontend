@@ -1,0 +1,196 @@
+/* In your CSS file or a style block in your component */
+.tooltip {
+    background: #fff;
+    border: 1px solid #ccc;
+    padding: 1px;
+    /* height:100px; */
+    /* border-radius: 25px; */
+    text-align: center; /* Center align text */
+}
+
+.tooltip-header {
+    font-weight: bold;
+    /* margin-bottom: 2px; */
+}
+
+.tooltip-body {
+    /* align: left; */
+    margin-left: 15px;
+    text-align: start;
+    margin-top: 2px;
+}
+
+
+.download-menu {
+    display: none;
+    position: absolute;
+    background: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+.download-menu.show {
+    display: block;
+}
+
+.chart-title {
+    text-align: center;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.toolbar button {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 5px;
+    transition: transform 0.2s ease-in-out;
+}
+.toolbar button:hover {
+    transform: scale(1.2);
+}
+.toolbar {
+    position: relative;
+}
+
+.download-menu {
+    display: none;
+    position: absolute;
+    top: 40px; /* Adjust this to position the menu below the button */
+    right:670px;
+    background-color: white;
+    border: 1px solid #ddd;
+    padding: 5px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.download-menu.show {
+    display: block;
+}
+
+.download-menu ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.download-menu ul li {
+    margin: 10px 0;
+}
+
+.download-menu button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 12px;
+    color:black;
+}
+
+
+
+
+
+.apexcharts-toolbar {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.apexcharts-custom-icon.custom-sort-ascending,
+.apexcharts-custom-icon.custom-sort-descending {
+    order: -1; /* Move custom icons to the start */
+}
+
+.apexcharts-toolbar > * {
+    margin-right: 8px; /* Adjust spacing if needed */
+}
+
+
+.chart-container {
+    max-width: 100%; /* Set a maximum width */
+    overflow-x: auto; /* Enable horizontal scrolling */
+}
+
+.chart-container.grabbing {
+    cursor: grabbing;
+}
+/* .apexcharts-canvas {
+    cursor: grab !important;
+  }
+  .apexcharts-canvas:active {
+    cursor: grabbing !important;
+  } */
+  
+.download-menu1 {
+    display: none;
+    position: absolute;
+    top: 50px; /* Adjust this value based on where you want the menu */
+    left: 0;
+    background-color: white;
+    border: 1px solid #ccc;
+    padding: 10px;
+    z-index: 10;
+}
+
+.download-menu.show1 {
+    display: block;
+}
+.tooltip {
+    position: absolute;
+    background-color: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px;
+    border-radius: 5px;
+    font-size: 12px;
+    pointer-events: none;
+    display: none;
+}
+/* Center legend vertically when on left or right */
+.apexcharts-legend.apexcharts-align-left,
+.apexcharts-legend.apexcharts-align-right {
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  position: absolute !important;
+}
+
+/* Horizontally center the legend when it's on top or bottom */
+.apexcharts-legend.apexcharts-align-top,
+.apexcharts-legend.apexcharts-align-bottom {
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  position: absolute !important;
+  justify-content: center !important;
+}
+
+.tooltiphierarchy {
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+    background: rgba(240, 240, 240, 0.85);
+  display: none; /* ✅ Important: ensures it's hidden */
+}
+
+.tooltiphierarchy.visible {
+  opacity: 1;
+  display: block; /* ✅ Make it visible when active */
+}
+/* tooltip.css */
+.tooltip {
+    position: absolute; /* Crucial for positioning with top/left */
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    pointer-events: none; /* Prevents tooltip from blocking mouse events on elements underneath */
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.2s ease-in-out; /* Smooth fade-in/out */
+    z-index: 1000; /* Ensure it's on top of other elements */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.tooltip.visible {
+    opacity: 1; /* Show when 'visible' class is added */
+}

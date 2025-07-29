@@ -1,0 +1,22 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "name": "Sub-Saharan Africa" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [-17.5, -35.0],
+              [52.0, -35.0],
+              [52.0, 5.0],
+              [-17.5, 5.0],
+              [-17.5, -35.0]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+  

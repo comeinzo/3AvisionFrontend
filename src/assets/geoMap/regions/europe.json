@@ -1,0 +1,22 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "name": "Europe" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [-31.266001, 34.50],
+              [39.869301, 34.50],
+              [39.869301, 71.185476],
+              [-31.266001, 71.185476],
+              [-31.266001, 34.50]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+  

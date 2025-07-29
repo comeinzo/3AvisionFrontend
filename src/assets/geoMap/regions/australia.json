@@ -1,0 +1,177 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "New South Wales",
+          "STE_CODE16": "1",
+          "ABBREV_NAME": "NSW",
+          "AREA_SQKM": 800630,
+          "centroid_lat": -32.0,
+          "centroid_lon": 147.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [141.002, -34.003],
+              [141.002, -34.008],
+              [141.002, -34.003]
+            ]
+         
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "Victoria",
+          "STE_CODE16": "2",
+          "ABBREV_NAME": "VIC",
+          "AREA_SQKM": 227415,
+       
+          "centroid_lat": -37.0,
+          "centroid_lon": 145.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [140.960, -38.995],
+              [140.963, -39.001],
+            
+              [140.960, -38.995]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "Queensland",
+          "STE_CODE16": "3",
+          "ABBREV_NAME": "QLD",
+          "AREA_SQKM": 1730648,
+     
+          "centroid_lat": -22.0,
+          "centroid_lon": 144.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [138.067, -28.005],
+              [138.070, -28.011],
+           
+              [138.067, -28.005]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "South Australia",
+          "STE_CODE16": "4",
+          "ABBREV_NAME": "SA",
+          "AREA_SQKM": 983482,
+          "centroid_lat": -30.0,
+          "centroid_lon": 135.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [129.001, -26.001],
+              [129.004, -26.007],
+              [129.001, -26.001]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "Western Australia",
+          "STE_CODE16": "5",
+          "ABBREV_NAME": "WA",
+          "AREA_SQKM": 2525500,
+       
+          "centroid_lat": -26.0,
+          "centroid_lon": 121.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [129.000, -13.835],
+            [129.003, -13.841],
+            [129.000, -13.835]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "Tasmania",
+          "STE_CODE16": "6",
+          "ABBREV_NAME": "TAS",
+          "AREA_SQKM": 68401,
+          "centroid_lat": -42.0,
+          "centroid_lon": 147.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [144.635, -40.672],
+              [144.641, -40.678],
+              [144.635, -40.672]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "Northern Territory",
+          "STE_CODE16": "7",
+          "ABBREV_NAME": "NT",
+          "AREA_SQKM": 1349129,
+          "centroid_lat": -20.0,
+          "centroid_lon": 133.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [129.000, -10.901],
+              [129.003, -10.907],
+              [129.000, -10.901]
+            ]
+          ]
+        }
+      },
+      {
+        "type": "Feature",
+        "properties": {
+          "STE_NAME16": "Australian Capital Territory",
+          "STE_CODE16": "8",
+          "ABBREV_NAME": "ACT",
+          "AREA_SQKM": 2358,
+          "centroid_lat": -35.5,
+          "centroid_lon": 149.0
+        },
+        "geometry": {
+          "type": "MultiPolygon",
+          "coordinates": [
+            [
+              [148.997, -35.113],
+              [149.000, -35.119],
+              [148.997, -35.113]
+            ]
+          ]
+        }
+      }
+    ]
+  }

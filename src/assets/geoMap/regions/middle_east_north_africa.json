@@ -1,0 +1,22 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+      {
+        "type": "Feature",
+        "properties": { "name": "MENA" },
+        "geometry": {
+          "type": "Polygon",
+          "coordinates": [
+            [
+              [-17.625, 5.0],
+              [60.0, 5.0],
+              [60.0, 37.5],
+              [-17.625, 37.5],
+              [-17.625, 5.0]
+            ]
+          ]
+        }
+      }
+    ]
+  }
+  

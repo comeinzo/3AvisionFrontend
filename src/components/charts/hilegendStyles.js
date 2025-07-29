@@ -1,0 +1,83 @@
+export const topLegendStyles = (fontSize, fontFamily, barColor, sortedData, setSelectedLegendIndex) => ({
+    // position: 'absolute',
+    // top: '-10px',
+    // left: '50%',
+    // transform: 'translateX(-50%)',
+    // display: 'flex',
+    // flexDirection: 'row',
+    // justifyContent: 'flex-start',
+    // flexWrap: 'wrap',
+    // gap: '10px',
+    // zIndex: 10,
+    // backgroundColor: 'white',
+    // padding: '10px',
+    // borderRadius: '5px',
+    
+  position: 'absolute',
+    top: '-60px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    flexWrap: 'wrap',
+    gap: '10px',
+    zIndex: 10,
+     padding: '10px',
+      backgroundColor: 'white',
+    borderRadius: '5px',  maxHeight: sortedData.length > 10 ? '90px' : 'none',
+      overflowY: sortedData.length > 10 ? 'auto' : 'visible',width: '60%'
+});
+
+export const bottomLegendStyles = (fontSize, fontFamily, barColor, sortedData, setSelectedLegendIndex) => ({
+    position: 'absolute',
+   bottom: '-100px',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    gap: '10px',
+    zIndex: 10,
+    // backgroundColor: 'white',
+    padding: '10px',
+     backgroundColor: 'white',
+    borderRadius: '5px',  maxHeight: sortedData.length > 10 ? '90px' : 'none',
+      overflowY: sortedData.length > 10 ? 'auto' : 'visible',width: '60%'
+});
+
+export const leftLegendStyles = (fontSize, fontFamily, barColor, sortedData, setSelectedLegendIndex) => ({
+    position: 'absolute',
+    left: '2%',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '10px',
+    textAlign: 'left',
+    zIndex: 10,
+    backgroundColor: 'white',
+    padding: '10px',
+    borderRadius: '5px',
+    overflowX: sortedData.length > 10 ? 'auto' : 'visible',height: '70%',
+});
+
+export const rightLegendStyles = (fontSize, fontFamily, barColor, sortedData, setSelectedLegendIndex) => ({
+    position: 'absolute',
+      right: '10%',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: '10px',
+    textAlign: 'right',
+    zIndex: 10,
+    backgroundColor: 'white',
+    padding: '10px',
+    borderRadius: '5px',
+    overflowX: sortedData.length > 10 ? 'auto' : 'visible',height: '70%',
+
+});
