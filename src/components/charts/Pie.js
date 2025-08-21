@@ -5,16 +5,20 @@ import Chart from "react-apexcharts";
 import { useDispatch, useSelector } from "react-redux";
 import { setClickedCategory } from '../../features/drillDownChartSlice/drillDownChartSlice';
 import { sendCategoryToBackend } from '../../utils/api';
-import { setChartColor } from '../../features/Charts/colorSlice';
+import { resetColors, setChartColor } from '../../features/Charts/colorSlice';
 import { setClickedTool } from '../../features/Dashboard-Slice/chartSlice';
 import ColorPicker from '../dashbord-Elements/legendColorpicker';
 import { useLocation } from 'react-router-dom';
 import { getContrastColor } from '../../utils/colorUtils';
+import { setShowDataLabels } from "../../features/ToolTip/toolTipSlice";
+// import { fontFamily } from "html2canvas/dist/types/css/property-descriptors/font-family";
+// import { fontStyle } from "html2canvas/dist/types/css/property-descriptors/font-style";
 const PieChart = (props) => {
   const { categories = [], values = [], aggregation } = props;
   const dispatch = useDispatch();
   const location = useLocation();
 
+  const fontStyle = useSelector((state) => state.toolTip?.fontFamily || 'Segoe UI');
   const xAxis = useSelector((state) => state.chart.xAxis);
   const yAxis = useSelector((state) => state.chart.yAxis);
   const aggregate = useSelector((state) => state.chart.aggregate);
@@ -36,6 +40,10 @@ const labelFormat = useSelector((state) => state.toolTip.labelFormat);
 const isValidcategoryColor = categorycolor && !invalidColors.includes(categorycolor.toLowerCase());
 const areaColorFromEditChartSlice = useSelector((state) => state.chartdata.chartColor);
 const resolvedcategoryColor= isValidcategoryColor ? categorycolor : getContrastColor(areaColor || '#ffffff');
+ const selectedCurrencyType = useSelector((state) => state.toolTip.currencyType);
+  const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
+
+ const [plotData, setPlotData] = useState({});
 useEffect(() => {
   let cleanAreaColorRaw = location.pathname === "/Edit_Chart"
     ? areaColorFromEditChartSlice
@@ -68,7 +76,21 @@ useEffect(() => {
   setSortedValues(values);
   setPieColors(resolvedColors);
 }, [categories, values, location.pathname, areaColorFromEditChartSlice]);
-
+const getCurrencySymbol = () => {
+    switch (selectedCurrencyType) {
+      case 'INR':
+        return '₹';
+      case 'USD':
+        return '$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'None':
+      default:
+        return '';
+    }
+  };
   // Calculate contrast label colors for each pie slice
 // function getContrastColor1(color) {
 //   if (!color) return 'black';
@@ -424,25 +446,25 @@ useEffect(() => {
               class: 'custom-sort-descending',
               click: handleSortDescending
             },
-            {
-              // Top 10: Using an upward double arrow symbol
-              icon: '<button style="background:none;border:none;color:#28a745;font-size:14px;">⏶</button>',
-              index: 3,
-              title: 'Show Top 10',
-              class: 'custom-top-10',
-              click: handleTop10,
-            },
-            {
-              // Bottom 10: Using a downward double arrow symbol
-              icon: '<button style="background:none;border:none;color:#dc3545;font-size:14px;">⏷</button>',
-              index: 4,
-              title: 'Show Bottom 10',
-              class: 'custom-bottom-10',
-              click: handleBottom10,
-            },
+            // {
+            //   // Top 10: Using an upward double arrow symbol
+            //   icon: '<button style="background:none;border:none;color:#28a745;font-size:14px;">⏶</button>',
+            //   index: 3,
+            //   title: 'Show Top 10',
+            //   class: 'custom-top-10',
+            //   click: handleTop10,
+            // },
+            // {
+            //   // Bottom 10: Using a downward double arrow symbol
+            //   icon: '<button style="background:none;border:none;color:#dc3545;font-size:14px;">⏷</button>',
+            //   index: 4,
+            //   title: 'Show Bottom 10',
+            //   class: 'custom-bottom-10',
+            //   click: handleBottom10,
+            // },
             {
               icon: '<button style="background:none;border:none;color:#6c757d;font-size:20px;">↺</button>',
-              index: 5, // Reset
+              index: 3, // Reset
                title: "Reset Tools",
               class: 'custom-reset',
               click: () => {
@@ -454,7 +476,7 @@ useEffect(() => {
             },
             {
               icon: '<button style="background:none;border:none;color:#007bff;font-size:16px;">📍</button>',
-              index: 6,
+              index: 4,
               title: "Toggle Legend Position",
               class: "custom-legend-toggle",
               click: toggleLegendPosition,
@@ -468,8 +490,8 @@ useEffect(() => {
           pan: false,
           reset: true,
         },
-        offsetX: -90,
-        offsetY: -0,
+        // offsetX: -90,
+        // offsetY: -0,
       },
       events: chartEvents,
     },
@@ -491,9 +513,11 @@ useEffect(() => {
       position: legendPosition === "hide" ? "right" : legendPosition,
       horizontalAlign: legendPosition === "top" || legendPosition === "bottom" ? 'center' : 'left',
       verticalAlign: legendPosition === "top" || legendPosition === "bottom" ? 'middle' : 'middle', // Set to middle for top/bottom as well
-      offsetY: legendPosition === "top" || legendPosition === "bottom" ? 0 : 0, // Keep 0 for top/bottom, you might need to adjust this based on your exact layout
+      // offsetY: legendPosition === "top" || legendPosition === "bottom" ? 0 : 0, // Keep 0 for top/bottom, you might need to adjust this based on your exact layout
+     offsetY: legendPosition === "top" ? 20 : 0,
       fontSize: '12px',
       fontWeight: 400,
+      fontFamily:fontStyle,
       labels: {
         colors: Array(10).fill(resolvedcategoryColor),
         useSeriesColors: false,
@@ -550,23 +574,25 @@ useEffect(() => {
   //     }
   //   },
  dataLabels: {
-  enabled: true,
+  enabled: showDataLabels,
   position: 'inside',
   useHTML: false, // ✅ HTML not supported inside slices
   formatter: function (val, opts) {
-    const rawValue = sortedValues[opts.seriesIndex];
+    // const rawValue = sortedValues[opts.seriesIndex];
+        const rawValue = Number(sortedValues[opts.seriesIndex]).toFixed(2); 
     const label = sortedCategories[opts.seriesIndex];
     // const truncatedLabel = label.length > 20 ? label.slice(0, 20) + '…' : label;
  const truncatedLabel = label.length > 20 ? label.slice(0, 10) + '…' : label;
-
-    
+   const currencySymbol = getCurrencySymbol();
+   
+    // ${currencySymbol} ${parseFloat(formattedValue).toLocaleString()}
     switch (labelFormat) {
       case 'text':
-        return `${truncatedLabel}\n${rawValue}`;
+        return `${truncatedLabel}\n  ${currencySymbol} ${rawValue}`;
       case 'label':
         return truncatedLabel;
       case 'value':
-        return rawValue;
+        return `${currencySymbol}${rawValue}`;
       case '%':
       default:
         return `${parseFloat(val).toFixed(1)}%`;
@@ -633,38 +659,60 @@ useEffect(() => {
         }
       }
     }],
-    tooltip: {
-      custom:
-        toolTipOptions.heading || toolTipOptions.categoryName || toolTipOptions.value
-          ? function ({ series, seriesIndex, dataPointIndex, w }) {
-              const cat = sortedCategories[dataPointIndex];
-              const val = sortedValues[dataPointIndex];
-              const currentAggregation = aggregation || "Aggregation";
-              const currentXAxis = xAxis[0] || "X-Axis";
-              const currentYAxis = yAxis || "Y-Axis";
-              return `
-                <div style="background: white; color: black; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+     tooltip: {
+      enabled: true,
+      y: {
+        formatter: function (value) { 
+          const currencySymbol =getCurrencySymbol(value);
+          const formatted =  `${currencySymbol} ${value.toLocaleString()}`;
+          const symbol = getCurrencySymbol(); // No need to pass value here
+          return symbol ? `${formatted}` : formatted;
+        },
+        title: {
+          formatter: function (seriesName) {
+            return `${seriesName}`;
+          }
+        }
+      },
+  custom: toolTipOptions.heading || toolTipOptions.categoryName || toolTipOptions.value
+        ? function ({ series, seriesIndex, dataPointIndex, w }) {
+      
+   const index = typeof dataPointIndex === 'number' ? dataPointIndex : seriesIndex;
+  if (index == null || index < 0 || index >= sortedCategories.length) {
+    return ''; // or some default info
+  }
+  const category = sortedCategories[index];
+ 
+  const value = series[seriesIndex];
+
+            const currentAggregation = aggregation || 'Aggregation';
+            const currentXAxis = xAxis[0] || 'X-Axis';
+            const currentYAxis = yAxis || 'Y-Axis';
+            const currencySymbol = value >= 100000 ? '₹' : '$';
+            const formattedValue = `${currencySymbol} ${value.toLocaleString()}`;
+            return `
+              <div style="background: white; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">
+                ${
+                  toolTipOptions.heading
+                    ? `<div style="font-weight: bold; margin-bottom: 5px; color: black;"><h4>${currentAggregation} of ${currentXAxis} vs ${currentYAxis}</h4></div>`
+                    : ''
+                }
+                <div>
                   ${
-                    toolTipOptions.heading
-                      ? `<div style="font-weight: bold; margin-bottom: 5px;"><h4>${currentAggregation} of ${currentXAxis} vs ${currentYAxis}</h4></div>`
-                      : ""
+                    toolTipOptions.categoryName
+                      ? `<div style="color: black";><strong>Category:</strong> ${category}</div>`
+                      : ''
                   }
-                  <div>
-                    ${
-                      toolTipOptions.categoryName
-                        ? `<div><strong>Category:</strong> ${cat}</div>`
-                        : ""
-                    }
-                    ${
-                      toolTipOptions.value
-                        ? `<div><strong>Value:</strong> ${val}</div>`
-                        : ""
-                    }
-                  </div>
+                  ${
+                    toolTipOptions.value
+                      ? `<div style="color: black";><strong>Value:</strong> ${formattedValue}</div>`
+                      : ''
+                  }
                 </div>
-              `;
-            }
-          : undefined,
+              </div>
+            `;
+          }
+        : undefined
     },
   };
   
@@ -689,7 +737,7 @@ useEffect(() => {
         }}>
           <div
             style={{
-              width: dynamicWidth,
+               width: '100%',
               height: dynamicHeight,
               maxWidth: '100%',
               overflow: 'hidden',
@@ -708,12 +756,12 @@ useEffect(() => {
             </div>
             <Chart
             // key={JSON.stringify(pieColors)} 
-              key={`${legendPosition}-${JSON.stringify(pieColors)}-${areaColor}-${labelFormat}-${sortedValues}`} 
+              key={`${legendPosition}-${JSON.stringify(pieColors)}-${areaColor}-${labelFormat}-${sortedValues}-${toolTipOptions.heading}-${toolTipOptions.categoryName}-${toolTipOptions.value}-${toolTipOptions.currencyType} -${resolvedcategoryColor}-${showDataLabels}`} 
               options={options}
               series={series}
               type="pie"
               width="100%"
-             height="90%"
+             height="80%"
             />
           </div>
         </div>

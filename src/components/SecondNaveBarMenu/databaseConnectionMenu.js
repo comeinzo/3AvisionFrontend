@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Button, ListItemIcon, Typography, alpha } from '@mui/material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import TableChartIcon from '@mui/icons-material/TableChart'; // Optional icon
 function DatabaseConnectionMenu({ userRole }) {
   const location = useLocation();
   const navigate = useNavigate();
@@ -49,18 +50,17 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
 
     >
       <ListItemIcon
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          width: '150px',
-          color: isActive ? appBarColor: 'black',  // Active icon color
-          
-        }}
-      >
+          sx={{
+            minWidth: '32px',
+            color: isActive ? appBarColor: 'text.secondary',
+          }}
+        >
+          <TableChartIcon fontSize="small" />
+        </ListItemIcon>
        <Typography variant="body2" fontWeight={isActive ? 'medium' : 'regular'}   sx={{ fontFamily: fontStyle }}>
-                  Database Connection
+                  Data Table
               </Typography>
-      </ListItemIcon>
+      {/* </ListItemIcon> */}
     </Button>
   );
 }

@@ -11,7 +11,9 @@ import { setToolTipOptions } from "../../features/ToolTip/toolTipSlice"; // Impo
 import { setClickedTool } from '../../features/Dashboard-Slice/chartSlice';
 
 import {fetchFilterOptionsAPI,generateChartData,saveChartData} from '../../utils/api';
-
+import CustomAlertDialog from '../DashboardActions/CustomAlertDialog'; // Import the new component
+import AlertDialog from '../DashboardActions/ConfirmationDialog'; // Import the new component
+// Import API functions
 function EditDashboard() {
   const [plotData, setPlotData] = useState({});
   const [isDrillDownEnabled, setIsDrillDownEnabled] = useState(false);
@@ -20,9 +22,14 @@ function EditDashboard() {
   const [checkedOptions, setCheckedOptions] = useState([]);
   const [showFilterDropdown, setShowFilterDropdown] = useState(false);
   const [selectAllChecked, setSelectAllChecked] = useState(true);
-  const [showSnackbar, setShowSnackbar] = useState(false); // Snackbar visibility
-  const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar message
-  const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Snackbar severity
+  // const [showSnackbar, setShowSnackbar] = useState(false); // Snackbar visibility
+  // const [snackbarMessage, setSnackbarMessage] = useState(""); // Snackbar message
+  // const [snackbarSeverity, setSnackbarSeverity] = useState("success"); // Snackbar severity
+  const [dialogOpen, setDialogOpen] = useState(false);
+const [dialogTitle, setDialogTitle] = useState("");
+const [dialogMessage, setDialogMessage] = useState("");
+const [dialogType, setDialogType] = useState("success"); // or 'error'
+
   const reduxCheckedOptions = useSelector(state => state.chartdata.checkedOptions); // Get from Redux
   const [dashboardPlotData, setDashboardPlotData] = useState({});
   const [dashboardBarColor, setDashboardBarColor] = useState("#2196f3");
@@ -76,7 +83,7 @@ console.log("Redux Filter Options:", reduxFilterOptions);
     // Check if all required data is available
     let canDisplay = false;
 
-    if (chartType === "singleValueChart") {
+    if (chartType === "singleValueChart" || chartType === "meterGauge") {
       // For singleValueChart, we only need aggregate and chartType,
       // and potentially an xAxis to define what to aggregate (e.g., 'count of orders').
       // yAxis might be irrelevant or empty.
@@ -97,18 +104,33 @@ console.log("Redux Filter Options:", reduxFilterOptions);
   console.log("filterOptions-----------------------------2",filterOptions)
    const navigate = useNavigate(); // Initialize useNavigate
       
-        useEffect(() => {
-            const disableBackButton = () => {
-                navigate("/"); // Redirect to the login page
-            };
+        // useEffect(() => {
+        //     const disableBackButton = () => {
+        //         navigate("/"); // Redirect to the login page
+        //     };
       
-            window.history.pushState(null, "", window.location.href);
-            window.addEventListener("popstate", disableBackButton);
+        //     window.history.pushState(null, "", window.location.href);
+        //     window.addEventListener("popstate", disableBackButton);
       
-            return () => {
-                window.removeEventListener("popstate", disableBackButton);
-            };
-        }, [navigate]); // Add navigate to the dependency array
+        //     return () => {
+        //         window.removeEventListener("popstate", disableBackButton);
+        //     };
+        // }, [navigate]); // Add navigate to the dependency array
+         useEffect(() => {
+    // Push current state so back button doesn't exit
+    window.history.pushState(null, "", window.location.href);
+
+    const handlePopState = (event) => {
+      event.preventDefault();
+      navigate('/Edit-page', { replace: true });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [navigate]);
   useEffect(() => {
     if (chartType1) {
       dispatch(setChartType(chartType1));
@@ -129,10 +151,17 @@ useEffect(() => {
 
 
   useEffect(() => {
-    if (xAxis && yAxis && aggregate && chartType && barColor) { // Removed barColor dependency as it's not used in generateChart
+    if (xAxis && yAxis && aggregate && chartType && barColor&& reduxCheckedOptions) { // Removed barColor dependency as it's not used in generateChart
       generateChart();
     }
-  }, [xAxis, yAxis, aggregate, chartType, checkedOptions]);
+  }, [xAxis, yAxis, aggregate, chartType, checkedOptions,reduxCheckedOptions]);
+  
+  const cleanFilterOptions = Object.entries(reduxCheckedOptions)
+  .filter(([key]) => key !== "undefined")
+  .reduce((acc, [key, value]) => {
+    acc[key] = value;
+    return acc;
+  }, {});
   const generateChart = async () => {
     try {
       const data = {
@@ -141,7 +170,7 @@ useEffect(() => {
         yAxis,
         aggregate,
         chartType,
-        filterOptions: reduxCheckedOptions, 
+        filterOptions: cleanFilterOptions, 
         databaseName,
         selectedUser,
         xFontSize,
@@ -302,20 +331,33 @@ try {
       const responseData = await saveChartData(payload);
       console.log("Data saved successfully:", responseData);
   
-      setSnackbarMessage("Data saved successfully!");
-      setSnackbarSeverity("success");
-      setShowSnackbar(true);
+      // setSnackbarMessage("Data saved successfully!");
+      // setSnackbarSeverity("success");
+      // setShowSnackbar(true);
+      setDialogTitle("Success");
+      setDialogMessage("Data saved successfully!");
+      setDialogType("success");
+      setDialogOpen(true);
+
     } catch (error) {
-      setSnackbarMessage("Failed to save data. Please try again.");
-      setSnackbarSeverity("error");
-      setShowSnackbar(true);
+      // setSnackbarMessage("Failed to save data. Please try again.");
+      // setSnackbarSeverity("error");
+      // setShowSnackbar(true);
+      setDialogTitle("Error");
+      setDialogMessage("Failed to save data. Please try again.");
+      setDialogType("error");
+      setDialogOpen(true);
+
     }
   };
   
+const handleDialogClose = () => {
+  setDialogOpen(false);
+};
 
-  const handleSnackbarClose = () => {
-    setShowSnackbar(false);
-  };
+  // const handleSnackbarClose = () => {
+  //   setShowSnackbar(false);
+  // };
 
 
   return (
@@ -343,11 +385,19 @@ try {
       )}
 
 
-      <Snackbar open={showSnackbar} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
+      {/* <Snackbar open={showSnackbar} autoHideDuration={3000} onClose={handleSnackbarClose} anchorOrigin={{ vertical: "bottom", horizontal: "center" }}>
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: "100%" }}>
           {snackbarMessage}
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
+      <CustomAlertDialog
+  open={dialogOpen}
+  onClose={handleDialogClose}
+  title={dialogTitle}
+  message={dialogMessage}
+  type={dialogType}
+/>
+
     </div>
   );
 }

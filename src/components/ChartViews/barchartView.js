@@ -25,11 +25,11 @@ const BarChart = ({
   chartColor,
   headingColor,
   ClickedTool, // Add tooltipType prop
-  areaColor,opacity,calculationData
+  areaColor,opacity,calculationData,fontStyle
 }) => {
   console.log("ClickedTool",ClickedTool)
   console.log("areaColor",areaColor)
-  console.log("opacity",opacity)
+  console.log("opacity",fontStyle)
 //   const isValidValueColor = valueColor && valueColor.toLowerCase() !== '#0000'||'"#000000"';
 // const resolvedColor = isValidValueColor ? valueColor : getContrastColor(areaColor || '#ffffff');
 const invalidColors = ['#0000', '#000000', '#000'];
@@ -197,10 +197,13 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
     xaxis: {
       categories: categories,
       title: {
-          text: `${x_axis}`,
+          text: `${x_axis}`,style: {
+                    color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                   },
         },
       labels: {
           style: {
+            fontFamily: fontStyle,
               fontSize:`${xFontSize}px`,
               fontWeight: 400,
                   // colors: new Array(categories.length).fill(getContrastColor(areaColor))|| categoryColor ,
@@ -220,11 +223,14 @@ colors: resolvedcategoryColor,
   },
     yaxis: {
       title: {
-        text: `${y_axis}`,
+        text: `${y_axis}`,style: {
+                    color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                   },
       },
       labels: {
         show: true,
         style: {
+          fontFamily: fontStyle,
           fontSize: `${yFontSize}px`,
           fontWeight: 400,
           // colors: valueColor||getContrastColor(areaColor ),

@@ -104,6 +104,7 @@ function hexToRGBA(hex, opacity) {
         
         
 //           };
+
 const handleClicked = async (event, chartContext, config) => {
               const clickedCategoryIndex = config.dataPointIndex;
               if (clickedCategoryIndex === -1) {
@@ -113,39 +114,55 @@ const handleClicked = async (event, chartContext, config) => {
               const clickedCategory = categories[clickedCategoryIndex];
               console.log('clicked category:', clickedCategory);
               try {
-                const response = await sendClickedCategory(clickedCategory, charts, x_axis,calculationData);
-                console.log('chart_data_list:', response.chart_data_list);
-                // response.chart_data_list.forEach((chartData) => {
+                // const response = await sendClickedCategory(clickedCategory, charts, x_axis[0],calculationData);
+                // console.log('chart_data_list:', response.chart_data_list);
+                // // response.chart_data_list.forEach((chartData) => {
+                // //   const { chart_id, data } = chartData;
+                // //   dispatch(
+                // //     updateDashboardChartData({
+                // //       chart_id,
+                // //       categories: data.categories,
+                // //       values: data.values,
+                // //       series1: data.series1,
+                // //       series2: data.series2,
+                // //       chartColor: data.chartColor,
+                // //     })    
+                // //   );
+                //  response.chart_data_list.forEach((chartData) => {
                 //   const { chart_id, data } = chartData;
-                //   dispatch(
-                //     updateDashboardChartData({
-                //       chart_id,
-                //       categories: data.categories,
-                //       values: data.values,
-                //       series1: data.series1,
-                //       series2: data.series2,
-                //       chartColor: data.chartColor,
-                //     })    
-                //   );
-                 response.chart_data_list.forEach((chartData) => {
-                  const { chart_id, data } = chartData;
-                  if (data && data.categories &&data.series1 && data.series2) {
-                    dispatch(
-                      updateDashboardChartData({
-                        chart_id,
-                        categories: data.categories,
-                        values: data.values,
-                        series1: data.series1,
-                        series2: data.series2,
-                        chartColor: data.chartColor,
-                      })
-                    );
-                  } else {
-                    console.warn(`No data found for chart_id ${chart_id}, skipping update.`);
-                  }
+                //   if (data && data.categories &&data.series1 && data.series2) {
+                //     dispatch(
+                //       updateDashboardChartData({
+                //         chart_id,
+                //         categories: data.categories,
+                //         values: data.values,
+                //         series1: data.series1,
+                //         series2: data.series2,
+                //         chartColor: data.chartColor,
+                //       })
+                //     );
+                //   } else {
+                //     console.warn(`No data found for chart_id ${chart_id}, skipping update.`);
+                //   }
           
-                });
-              
+                // });
+               const response = await sendClickedCategory(clickedCategory, charts, x_axis[0],calculationData);
+                        console.log('chart_data_list:', response.chart_data_list);
+                        response.chart_data_list.forEach((chartData) => {
+                          const { chart_id, data } = chartData;
+                          dispatch(
+                            updateDashboardChartData({
+                              chart_id,
+                              categories: data.categories,
+                              values: data.values,
+                              series1: data.series1,
+                              series2: data.series2,
+                              chartColor: data.chartColor,
+                            })    
+                          );
+                  
+                        });
+                      
               } catch (error) {
                 console.error(`Failed to send category ${clickedCategory}:`, error);
               }
@@ -177,8 +194,13 @@ const handleClicked = async (event, chartContext, config) => {
     }
 
     const normalizedChartColor = Object.fromEntries(
-        Object.entries(parsedChartColor).map(([key, value]) => [key.trim().toLowerCase(), value])
+      Object.entries(parsedChartColor)
+  .filter(([key]) => typeof key === 'string')
+  .map(([key, value]) => [key.trim().toLowerCase(), value])
+
+        // Object.entries(parsedChartColor).map(([key, value]) => [key.trim().toLowerCase(), value])
     );
+    console.log("normalizedChartColor",normalizedChartColor)
 
  const uniqueSeries1 = [...new Set(series1)];
 
@@ -202,10 +224,10 @@ if (ClickedTool === "Show Top 10") {
     aggregatedArray.sort((a, b) => a.value - b.value);
 }
 
-// Step 4: Slice to top 10
-if (ClickedTool === "Show Top 10" || ClickedTool === "Show Bottom 10") {
-    aggregatedArray = aggregatedArray.slice(0, 10);
-}
+// // Step 4: Slice to top 10
+// if (ClickedTool === "Show Top 10" || ClickedTool === "Show Bottom 10") {
+//     aggregatedArray = aggregatedArray.slice(0, 10);
+// }
 
 // Step 5: Extract filtered sets
 const filteredCategories = aggregatedArray.map(item => item.category);
@@ -254,12 +276,22 @@ const series = uniqueSeries.map(s1 => ({
         xaxis: {
             
             categories:uniqueCategories,
+              title: {
+                                text: `${x_axis}`,style: {
+                                            color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                                           },
+                              },
             labels: {
                 style: { fontFamily: fontStyle, fontSize: `${xFontSize}px`, colors: Array(10).fill(resolvedcategoryColor),},
                 rotate: -45
             }
         },
-        yaxis: {
+        yaxis: {  title: {
+                            text: `${y_axis}`,style: {
+                                        color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                                       },
+                          },
+
             labels: {
                 style: { fontFamily: fontStyle, fontSize: `${yFontSize}px`, colors: Array(10).fill(resolvedColor), },
                 formatter: (value) => value >= 1000 ? `${(value / 1000).toFixed(1)}K` : value

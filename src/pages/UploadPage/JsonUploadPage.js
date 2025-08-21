@@ -25,7 +25,10 @@ import { Button, TextField, Typography, Grid, Snackbar, Alert, Select, MenuItem,
   useMediaQuery,Box ,Dialog,DialogTitle,
   DialogContent,
   DialogActions,CircularProgress} from '@mui/material';
-  
+  import CustomAlertDialog from '../../components/DashboardActions/CustomAlertDialog'; // Import the new component
+import ConfirmationDialog from '../../components/DashboardActions/ConfirmationDialog';
+
+import InfoIcon from '@mui/icons-material/Info'; // Added for dialog
   import CheckCircleIcon from '@mui/icons-material/CheckCircle';
   import ErrorIcon from '@mui/icons-material/Error';
 import { PieChart } from '@mui/x-charts/PieChart';
@@ -100,7 +103,7 @@ const UploadZone = styled(Paper)(({ theme, isDragOver }) => ({
 }));
 
 const GradientBox = styled(Box)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  // background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   borderRadius: 16,
   padding: theme.spacing(3),
   color: 'white',
@@ -158,13 +161,50 @@ const JsonUpload = () => {
   const [isEstimatedCount, setIsEstimatedCount] = useState(false);
 // Flatten all objects first
 const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogTitle, setDialogTitle] = React.useState('');
+  const [dialogMessage, setDialogMessage] = React.useState('');
+  const [dialogType, setDialogType] = React.useState(''); // 'success', 'error', 'info'
+const [confirmOpen, setConfirmOpen] = React.useState(false);
+const [confirmMessage, setConfirmMessage] = React.useState('');
+const [confirmTitle, setConfirmTitle] = React.useState('');
+const [confirmResolve, setConfirmResolve] = React.useState(null);
+const navigate = useNavigate(); // Initialize useNavigate
+useEffect(() => {
+  const handlePopState = () => {
+    navigate('/data-source-page');
+  };
+
+  window.addEventListener('popstate', handlePopState);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, [navigate]);
+const handleConfirm = (title, message) => {
+  return new Promise((resolve) => {
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+    setConfirmResolve(() => resolve);
+  });
+};
+
+const handleConfirmClose = (result) => {
+  setConfirmOpen(false);
+  if (confirmResolve) confirmResolve(result);
+};
+const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
 console.log('fontStyle:', fontStyle);
   const steps = [
     { label: 'Upload File', description: 'Select your Json file' },
     { label: 'Set Primary Key', description: 'Choose your primary key column' },
     { label: 'Upload Data', description: 'Import data to database' },
   ];
-const navigate = useNavigate(); // Initialize useNavigate
+
  React.useEffect(() => {
     if (file && !primaryKeyColumn) setActiveStep(1);
  
@@ -172,29 +212,51 @@ const navigate = useNavigate(); // Initialize useNavigate
   }, [file, primaryKeyColumn]);
  
 
-  useEffect(() => {
-      const disableBackButton = () => {
-          navigate("/"); // Redirect to the login page
-      };
+  // useEffect(() => {
+  //     const disableBackButton = () => {
+  //         navigate("/"); // Redirect to the login page
+  //     };
 
-      window.history.pushState(null, "", window.location.href);
-      window.addEventListener("popstate", disableBackButton);
+  //     window.history.pushState(null, "", window.location.href);
+  //     window.addEventListener("popstate", disableBackButton);
 
-      return () => {
-          window.removeEventListener("popstate", disableBackButton);
-      };
-  }, [navigate]); // Add navigate to the dependency array
+  //     return () => {
+  //         window.removeEventListener("popstate", disableBackButton);
+  //     };
+  // }, [navigate]); // Add navigate to the dependency array
+  // React.useEffect(() => {
+  //   if (uploadError) {
+  //     setSnackbarMessage(uploadError);
+  //     setSnackbarSeverity('error');
+  //     setSnackbarOpen(true);
+  //   } else if (uploadSuccess) {
+  //     setSnackbarMessage('File uploaded successfully...');
+  //     setSnackbarSeverity('success');
+  //     setSnackbarOpen(true);
+  //   }
+  // }, [uploadError, uploadSuccess]);
   React.useEffect(() => {
-    if (uploadError) {
-      setSnackbarMessage(uploadError);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-    } else if (uploadSuccess) {
-      setSnackbarMessage('File uploaded successfully...');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
-    }
-  }, [uploadError, uploadSuccess]);
+  if (uploadError) {
+    // Show error dialog
+    setDialogTitle('Error');
+    setDialogMessage(
+      typeof uploadError === 'object' ? uploadError.message || JSON.stringify(uploadError) : uploadError
+    );
+    setDialogType('error');
+    setDialogOpen(true);
+  } else if (uploadSuccess) {
+    // Show success dialog
+    const message =
+      typeof uploadSuccess === 'object'
+        ? uploadSuccess.message || JSON.stringify(uploadSuccess)
+        : 'File uploaded successfully...';
+
+    setDialogTitle('Success');
+    setDialogMessage(message);
+    setDialogType('success');
+    setDialogOpen(true);
+  }
+}, [uploadError, uploadSuccess]);
  const formatRowCount = (count) => {
     if (count >= 1000000) return `${(count / 1000000).toFixed(1)}M`;
     if (count >= 1000) return `${(count / 1000).toFixed(1)}K`;
@@ -243,9 +305,12 @@ const columnHeaders = flattenedJsonData.length > 0 ? Object.keys(flattenedJsonDa
 
     // Validate file size
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setSnackbarMessage(`File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      // setSnackbarMessage(`File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+      // setSnackbarSeverity('error');
+      // setSnackbarOpen(true);
+      setDialogTitle('File size exceeds');
+    setDialogMessage('File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.');
+    setDialogType('error');
       return;
     }
 
@@ -313,16 +378,26 @@ const columnHeaders = flattenedJsonData.length > 0 ? Object.keys(flattenedJsonDa
         dispatch(setPrimaryKeyColumn(primaryKeyColumnIndex));
 
 
-        setSnackbarMessage(
-          `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
-        );
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
+        // setSnackbarMessage(
+        //   `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
+        // );
+        // setSnackbarSeverity('success');
+        // setSnackbarOpen(true);
+         // Show success dialog
+          setDialogTitle('Success');
+          setDialogMessage(
+           `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
+          );
+          setDialogType('success');
+          setDialogOpen(true);
+          
+          setActiveStep(1);
         setActiveStep(1);
       } catch (error) {
-        setSnackbarMessage(error.message || 'Error processing JSON data.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+       setDialogTitle('Error');
+          setDialogMessage(error.message || 'Error processing Json data.');
+          setDialogType('error');
+          setDialogOpen(true);
       } finally {
         setIsProcessing(false);
         setProcessingStep('');
@@ -330,9 +405,13 @@ const columnHeaders = flattenedJsonData.length > 0 ? Object.keys(flattenedJsonDa
       }
     };
     reader.onerror = () => {
-        setSnackbarMessage('Failed to read JSON file.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+        // setSnackbarMessage('Failed to read JSON file.');
+        // setSnackbarSeverity('error');
+        // setSnackbarOpen(true);
+          setDialogTitle('Error');
+        setDialogMessage('Failed to read JSON file.');
+        setDialogType('error');
+        setDialogOpen(true);
         setIsProcessing(false);
         setProcessingStep('');
         setFileProcessingProgress(0);
@@ -341,9 +420,13 @@ const columnHeaders = flattenedJsonData.length > 0 ? Object.keys(flattenedJsonDa
   
     } else {
       dispatch(setFile(null));
-      setSnackbarMessage('Please upload a valid JSON file.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      // setSnackbarMessage('Please upload a valid JSON file.');
+      // setSnackbarSeverity('error');
+      // setSnackbarOpen(true);
+        setDialogTitle('Error');
+        setDialogMessage('Error parsing Json file.');
+        setDialogType('error');
+        setDialogOpen(true);
       setIsProcessing(false);
     }
   };
@@ -365,98 +448,203 @@ const columnHeaders = flattenedJsonData.length > 0 ? Object.keys(flattenedJsonDa
     if (droppedFile) handleFileChange(droppedFile);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setUploadProgress(0);
-if (primaryKeyColumn === null && jsonData.length > 1) {
-        if (!jsonData[0].includes("id")) {
-          const newHeaders = ["id", ...jsonData[0]];
-          const newData = jsonData.slice(1).map((row, index) => [index + 1, ...row]);
-          setJsonData([newHeaders, ...newData]);
-          dispatch(setPrimaryKeyColumn(0));
-        } else {
-          console.log("The 'id' column already exists. Skipping creation.");
-        }
-      } else {
-        console.log("A primary key column is already selected. Skipping creation.");
-      }
+//   const handleSubmit = async (e) => {
+//     e.preventDefault();
+//     setUploadProgress(0);
+// if (primaryKeyColumn === null && jsonData.length > 1) {
+//         if (!jsonData[0].includes("id")) {
+//           const newHeaders = ["id", ...jsonData[0]];
+//           const newData = jsonData.slice(1).map((row, index) => [index + 1, ...row]);
+//           setJsonData([newHeaders, ...newData]);
+//           dispatch(setPrimaryKeyColumn(0));
+//         } else {
+//           console.log("The 'id' column already exists. Skipping creation.");
+//         }
+//       } else {
+//         console.log("A primary key column is already selected. Skipping creation.");
+//       }
   
-      setUploadProgress(0);
-    if (file) {
-      // Ensure the data has a primary key column
-      if (primaryKeyColumn !== null && columnHeadings[primaryKeyColumn]) {
-        const existingTableNames = await fetchTableNamesAPI(company_database);
-        const tableName = file.name.toLowerCase().replace(/\s+/g, '_').replace(/\..+$/, '');
+//       setUploadProgress(0);
+//     if (file) {
+//       // Ensure the data has a primary key column
+//       if (primaryKeyColumn !== null && columnHeadings[primaryKeyColumn]) {
+//         const existingTableNames = await fetchTableNamesAPI(company_database);
+//         const tableName = file.name.toLowerCase().replace(/\s+/g, '_').replace(/\..+$/, '');
         
-        if (existingTableNames.includes(tableName)) {
-// Check if table exists
-if (existingTableNames.includes(tableName)) {
-  const isTableInUse = await checkIfTableInUse(tableName);
+//         if (existingTableNames.includes(tableName)) {
+// // Check if table exists
+// if (existingTableNames.includes(tableName)) {
+//   const isTableInUse = await checkIfTableInUse(tableName);
 
-  if (isTableInUse) {
-    const userChoice = window.confirm(
-      `The table "${tableName}" is being used for chart creation. Do you want to update it?`
-    );
-    if (!userChoice) {
-      alert("Table update canceled.");
-      return;
+//   if (isTableInUse) {
+//     const userChoice = window.confirm(
+//       `The table "${tableName}" is being used for chart creation. Do you want to update it?`
+//     );
+//     if (!userChoice) {
+//       alert("Table update canceled.");
+//       return;
+//     }
+//   } else {
+//     const userChoice = window.confirm(`The table "${tableName}" already exists. Do you want to update it?`);
+//     if (!userChoice) {
+//       alert("Table creation skipped.");
+//       return;
+//     }
+//   }
+
+//   // Fetch existing columns and compare with uploaded columns
+//   const existingColumns = await fetchTableColumnsAPI(tableName, company_database);
+//   const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
+
+//   // Check for column mismatches or missing columns
+//   const mismatchedColumns = uploadedColumns.filter((col) => !existingColumns.includes(col));
+//   const missingColumns = existingColumns.filter((col) => !uploadedColumns.includes(col));
+
+//   if (mismatchedColumns.length > 0) {
+//     alert(
+//       `Column mismatch detected! The following columns in the uploaded file do not exist in the existing table "${tableName}": ${mismatchedColumns.join(", ")}.`
+//     );
+//     return;
+//   }
+
+//   if (missingColumns.length > 0) {
+//     alert(
+//       `Missing columns! The following columns are required but not found in the uploaded file: ${missingColumns.join(", ")}. Please update the file and upload again.`
+//     );
+//     return;
+//   }
+
+
+//             dispatch(uploadJson({ file, primaryKeyColumnName: columnHeadings[primaryKeyColumn], company_database,
+//               onUploadProgress: (progressEvent) => {
+//             const { loaded, total } = progressEvent;
+//             const percentage = Math.floor((loaded * 100) / total);
+//             setUploadProgress(percentage);},
+//      }));
+//           } else {
+//             alert('Table update canceled.');
+//           }
+//         } else {
+//           dispatch(uploadJson({ file, primaryKeyColumnName: columnHeadings[primaryKeyColumn], company_database }));
+//         }
+//       } else {
+//         // If primary key column is not selected, create a default 'id' column with values
+//         const updatedFile = addDefaultPrimaryKey(file);
+//         dispatch(uploadJson({ file: updatedFile, primaryKeyColumnName: 'id', company_database,onUploadProgress: (progressEvent) => {
+//             const { loaded, total } = progressEvent;
+//             const percentage = Math.floor((loaded * 100) / total);
+//             setUploadProgress(percentage);},
+//        }));
+//       }
+//     } else {
+//       alert('Please upload a file.');
+//     }
+//   };
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setUploadProgress(0);
+
+  // Check if primary key needs to be added
+  if (primaryKeyColumn === null && jsonData.length > 1) {
+    if (!jsonData[0].includes("id")) {
+      const newHeaders = ["id", ...jsonData[0]];
+      const newData = jsonData.slice(1).map((row, index) => [index + 1, ...row]);
+      setJsonData([newHeaders, ...newData]);
+      dispatch(setPrimaryKeyColumn(0));
+    } else {
+      console.log("The 'id' column already exists. Skipping creation.");
     }
   } else {
-    const userChoice = window.confirm(`The table "${tableName}" already exists. Do you want to update it?`);
-    if (!userChoice) {
-      alert("Table creation skipped.");
-      return;
-    }
+    console.log("A primary key column is already selected. Skipping creation.");
   }
 
-  // Fetch existing columns and compare with uploaded columns
-  const existingColumns = await fetchTableColumnsAPI(tableName, company_database);
-  const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
+  if (file) {
+    if (primaryKeyColumn !== null && columnHeadings[primaryKeyColumn]) {
+      const existingTableNames = await fetchTableNamesAPI(company_database);
+      const tableName = file.name.toLowerCase().replace(/\s+/g, '_').replace(/\..+$/, '');
 
-  // Check for column mismatches or missing columns
-  const mismatchedColumns = uploadedColumns.filter((col) => !existingColumns.includes(col));
-  const missingColumns = existingColumns.filter((col) => !uploadedColumns.includes(col));
+      const isTableInUse = await checkIfTableInUse(tableName);
 
-  if (mismatchedColumns.length > 0) {
-    alert(
-      `Column mismatch detected! The following columns in the uploaded file do not exist in the existing table "${tableName}": ${mismatchedColumns.join(", ")}.`
-    );
-    return;
-  }
-
-  if (missingColumns.length > 0) {
-    alert(
-      `Missing columns! The following columns are required but not found in the uploaded file: ${missingColumns.join(", ")}. Please update the file and upload again.`
-    );
-    return;
-  }
-
-
-            dispatch(uploadJson({ file, primaryKeyColumnName: columnHeadings[primaryKeyColumn], company_database,
-              onUploadProgress: (progressEvent) => {
-            const { loaded, total } = progressEvent;
-            const percentage = Math.floor((loaded * 100) / total);
-            setUploadProgress(percentage);},
-     }));
-          } else {
-            alert('Table update canceled.');
+      // Handle table existence and user confirmation
+      if (existingTableNames.includes(tableName)) {
+        if (isTableInUse) {
+          // Show confirmation dialog
+          const proceed = await handleConfirm(
+            `The table "${tableName}" is being used for chart creation. Do you want to update it?`
+          );
+          if (!proceed) {
+            setDialogTitle('Information');
+            setDialogMessage(`Upload cancelled by user. You chose not to update table "${tableName}".`);
+            setDialogType('info');
+            setDialogOpen(true);
+            return; // Exit if user cancels
           }
-        } else {
-          dispatch(uploadJson({ file, primaryKeyColumnName: columnHeadings[primaryKeyColumn], company_database }));
         }
-      } else {
-        // If primary key column is not selected, create a default 'id' column with values
-        const updatedFile = addDefaultPrimaryKey(file);
-        dispatch(uploadJson({ file: updatedFile, primaryKeyColumnName: 'id', company_database,onUploadProgress: (progressEvent) => {
+
+        // Fetch existing columns for comparison
+        const existingColumns = await fetchTableColumnsAPI(tableName, company_database);
+        const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
+
+        // Check for mismatched columns
+        const mismatchedColumns = uploadedColumns.filter((col) => !existingColumns.includes(col));
+        const missingColumns = existingColumns.filter((col) => !uploadedColumns.includes(col));
+
+        if (mismatchedColumns.length > 0) {
+          setDialogTitle('Column Mismatch');
+          setDialogMessage(`Column mismatch! The following columns in your uploaded file do not exist in the existing table "${tableName}": ${mismatchedColumns.join(', ')}.`);
+          setDialogType('error');
+          setDialogOpen(true);
+          return;
+        }
+
+        if (missingColumns.length > 0) {
+          setDialogTitle('Missing Columns');
+          setDialogMessage(`Missing columns! The following columns are required in the existing table "${tableName}": ${missingColumns.join(', ')}.`);
+          setDialogType('error');
+          setDialogOpen(true);
+          return;
+        }
+
+        // If all checks pass, proceed to upload
+        dispatch(uploadJson({
+          file,
+          primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+          company_database,
+          onUploadProgress: (progressEvent) => {
             const { loaded, total } = progressEvent;
             const percentage = Math.floor((loaded * 100) / total);
-            setUploadProgress(percentage);},
-       }));
+            setUploadProgress(percentage);
+          },
+        }));
+        return; // Finish after starting upload
+      } else {
+        // Table does not exist, proceed with upload
+        dispatch(uploadJson({
+          file,
+          primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+          company_database,
+          onUploadProgress: (progressEvent) => {
+            const { loaded, total } = progressEvent;
+            const percentage = Math.floor((loaded * 100) / total);
+            setUploadProgress(percentage);
+          },
+        }));
+        return;
       }
     } else {
-      alert('Please upload a file.');
+      setDialogTitle('Error');
+      setDialogMessage('Primary key column is not selected.');
+      setDialogType('error');
+      setDialogOpen(true);
     }
-  };
+  } else {
+    // No file uploaded
+    setDialogTitle('No File');
+    setDialogMessage('Please upload a file before submitting.');
+    setDialogType('error');
+    setDialogOpen(true);
+  }
+};
  const handleConfirmationChoice = (choice) => {
     setConfirmationChoice(choice);
     setConfirmationOpen(false);
@@ -515,7 +703,9 @@ if (existingTableNames.includes(tableName)) {
               <StyledCard sx={{ height: { lg: 'calc(100vh - 120px)' }, overflow: 'auto' }}>
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   {/* Header */}
-                  <GradientBox sx={{ mb: 3 }}>
+                  {/* <GradientBox sx={{ mb: 3 }}> */}
+                  <GradientBox sx={{ background: `linear-gradient(135deg, ${appBarColor}88 0%, ${appBarColor}44 100%)`, }} >
+                   
                     <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 700, mb: 1,fontFamily: fontStyle }}>
                       JSON Upload
                     </Typography>
@@ -1187,6 +1377,19 @@ if (existingTableNames.includes(tableName)) {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+        <CustomAlertDialog
+                  open={dialogOpen}
+                  onClose={handleDialogClose}
+                  title={dialogTitle}
+                  message={dialogMessage}
+                  type={dialogType}
+                />
+                <ConfirmationDialog
+              open={confirmOpen}
+              onClose={handleConfirmClose}
+              title={confirmTitle}
+              message={confirmMessage}
+            />
     </React.Fragment>
   );
 };

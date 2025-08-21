@@ -299,7 +299,11 @@ const handlePredictData = async () => {
             tickAmount: Math.min(sortedCategories.length, 20),
             title: {
                 text: `${x_axis}`,
-              },
+            style: {
+              
+               color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+             },
+            },
             labels: {
                 offsetX: 0,
                 rotate: -45,
@@ -309,6 +313,7 @@ const handlePredictData = async () => {
                 style: {
                     fontSize:`${xFontSize}px`,
                     fontWeight: 400,
+                     fontFamily:fontStyle,
                     // colors: categoryColor,
                     colors: Array(10).fill(resolvedcategoryColor)
                 },
@@ -338,13 +343,16 @@ const handlePredictData = async () => {
         },
         yaxis: {
             title: {
-                text: `${y_axis}`,
+                text: `${y_axis}`,style: {
+               color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+             },
             },
             labels: {
                 style: {
                     fontSize:`${yFontSize}px`,
                     fontWeight: 400,
                     // colors: valueColor,
+                    fontFamily:fontStyle,
                     colors: Array(10).fill(resolvedColor)
                 },
                 formatter: (value) => {
@@ -494,7 +502,7 @@ style={{
                               series={series}
                                type="line"
                               width="100%"
-                              height="100%"
+                              height="90%"
                             />
                           </div>
                 </div>

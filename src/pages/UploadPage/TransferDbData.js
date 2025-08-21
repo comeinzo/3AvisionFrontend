@@ -42,7 +42,8 @@ import HomePage from '../HomePage'; // Adjust path if necessary
 import { connectToDatabase, fetchTableColumns, fetchTables, transferData } from '../../utils/api';
 import { useLocation } from 'react-router';
 // import { fontStyle } from 'html2canvas/dist/types/css/property-descriptors/font-style';
-
+ import CustomAlertDialog from '../../components/DashboardActions/CustomAlertDialog'; // Import the new component
+import ConfirmationDialog from '../../components/DashboardActions/ConfirmationDialog';
 
 const theme = createTheme({
     palette: {
@@ -140,6 +141,14 @@ export default function TransferDbData() {
     const fontStyle = useSelector((state) => state.barColor.fontStyle);
     const location = useLocation();
     const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogTitle, setDialogTitle] = useState('');
+    const [dialogMessage, setDialogMessage] = useState('');
+    const [dialogType, setDialogType] = useState('info'); // 'success' | 'error' | 'info' | 'warning'
+
+    const handleCloseDialog = () => {
+    setDialogOpen(false);
+};
 
     // Stepper state
     const [activeStep, setActiveStep] = useState(0);
@@ -191,7 +200,9 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
   },
 });
 
-
+const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
     useEffect(() => {
         if (sourceTableName && sourceTested) {
             fetchSourceTableColumns(sourceTableName);
@@ -250,8 +261,13 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
     });
     const testConnection = async () => {
         if (!source.dbType || !source.dbUsername || !source.dbPassword || !source.port || !source.dbName) {
-            setMessage("Please fill all required source fields.");
-            setSnackbarOpen(true);
+            // setMessage("Please fill all required source fields.");
+            // setSnackbarOpen(true);
+            setDialogTitle("Warning");
+            setDialogMessage("Please fill all required source fields.");
+            setDialogType("error");
+            setDialogOpen(true);
+
             return;
         }
 
@@ -270,20 +286,34 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
 
 
             if (res.success) {
-                setMessage("Source connection successful.");
+                // setMessage("Source connection successful.");
+                 setDialogTitle("Update Status");
+                setDialogMessage("Source connection successful.");
+                setDialogType("success");
+                 
                 setSourceTested(true);
                 fetchSourceTables();
                 fetchDestinationTables();
                 setActiveStep(1); // Move to the next step on successful connection
             } else {
-                setMessage("Source connection failed: " + res.data.error);
+                // setMessage("Source connection failed: " + res.data.error);
+                setDialogTitle("Update Status");
+                setDialogMessage("Source connection failed: " + res.data.error);
+                setDialogType("error");
+                 
                 setSourceTested(false); // Ensure sourceTested is false on failure
             }
         } catch (err) {
-            setMessage("Source connection error: " + err.message);
+            // setMessage("Source connection error: " + err.message);
+            setDialogTitle("Update Status");
+                setDialogMessage("Source connection error: " + err.message);
+                setDialogType("error");
             setSourceTested(false); // Ensure sourceTested is false on error
         }
-        setSnackbarOpen(true);
+        // setSnackbarOpen(true);
+         
+        
+        setDialogOpen(true);
     };
 ;
 
@@ -295,8 +325,12 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
         } catch (err) {
             console.error('Error fetching source tables:', err);
             // Optionally, set a message to display to the user
-            setMessage("Failed to fetch source tables.");
-            setSnackbarOpen(true);
+            // setMessage("Failed to fetch source tables.");
+            // setSnackbarOpen(true);
+                setDialogTitle("Update Status");
+                setDialogMessage("Failed to fetch source tables.");
+                setDialogType("Error");
+        setDialogOpen(true);
             setSourceTables([]); // Clear tables on error
         }
     };
@@ -313,8 +347,12 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
         } catch (err) {
             console.error('Error fetching destination tables:', err);
             // Optionally, set a message to display to the user
-            setMessage("Failed to fetch destination tables.");
-            setSnackbarOpen(true);
+            // setMessage("Failed to fetch destination tables.");
+            // setSnackbarOpen(true);
+             setDialogTitle("Update Status");
+                setDialogMessage("Failed to fetch destination tables.");
+                setDialogType("Error");
+                 setDialogOpen(true);
             setDestTables([]); // Clear tables on error
         }
     };
@@ -326,13 +364,21 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
             if (res.success) {
                 setSourceColumns(res.columns || []);
             } else {
-                setMessage("Error fetching source table columns: " + res.error);
-                setSnackbarOpen(true);
+                // setMessage("Error fetching source table columns: " + res.error);
+                // setSnackbarOpen(true);
+                 setDialogTitle("Update Status");
+                setDialogMessage("Error fetching source table columns: " + res.error);
+                setDialogType("Error");
+                 setDialogOpen(true);
                 setSourceColumns([]); // Clear columns on failure
             }
         } catch (err) {
-            setMessage("Error fetching source table columns: " + err.message);
-            setSnackbarOpen(true);
+            // setMessage("Error fetching source table columns: " + err.message);
+            // setSnackbarOpen(true);
+             setDialogTitle("Update Status");
+                setDialogMessage("Error fetching source table columns: " + err.message);
+                setDialogType("Error");
+                 setDialogOpen(true);
             setSourceColumns([]); // Clear columns on error
         }
     };
@@ -360,22 +406,30 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
 
     const handleTransferButtonClick = () => {
         if (!sourceTableName) {
-            setMessage("Please select a source table.");
-            setSnackbarOpen(true);
+            // setMessage("Please select a source table.");
+            // setSnackbarOpen(true);
+             setDialogTitle("Warning");
+                setDialogMessage("Please select a source table.");
+                setDialogType("info");
+                 setDialogOpen(true);
             return;
         }
 
-        // Auto-create destination table name if not selected and not 'None'
-        if (!destTableName && destinationDbType !== 'None') {
-            const autoGeneratedTableName = `${sourceTableName}_migrated`; // Added a clearer suffix
-            setDestTableName(autoGeneratedTableName);
-            setMessage(`Destination table name auto-set to: ${autoGeneratedTableName}`);
-            setSnackbarOpen(true);
-        }
+        // // Auto-create destination table name if not selected and not 'None'
+        // if (!destTableName && destinationDbType !== 'None') {
+        //     // const autoGeneratedTableName = `${sourceTableName}_migrated`; // Added a clearer suffix
+        //     setDestTableName();
+        //     setMessage(`Destination table is empty`);
+        //     setSnackbarOpen(true);
+        // }
 
         if (selectedColumns.length === 0 && sourceColumns.length > 0) {
-            setMessage("Please select at least one column to transfer.");
-            setSnackbarOpen(true);
+            // setMessage("Please select at least one column to transfer.");
+            // setSnackbarOpen(true);
+             setDialogTitle("Warning");
+                setDialogMessage("Please select at least one column to transfer.");
+                setDialogType("info");
+                 setDialogOpen(true);
             return;
         }
         setUpdatePermissionOpen(true);
@@ -412,15 +466,28 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
             const responseData = await transferData(payload); // Call the API function
 
             if (responseData.success) {
-                setMessage("Job scheduled or data transferred successfully.");
+                // setMessage("Job scheduled or data transferred successfully.");
+                 setDialogTitle("Update Status");
+                setDialogMessage("Job scheduled or data transferred successfully.");
+                setDialogType("success");
+                //  setDialogOpen(true);
             } else {
-                setMessage("Operation failed: " + responseData.error);
+                  setDialogTitle("Update Status");
+                setDialogMessage("Operation failed: " + responseData.error);
+                setDialogType("success");
+                //  setDialogOpen(true);
+                // setMessage("Operation failed: " + responseData.error);
             }
         } catch (error) {
             // Errors thrown by the API function are caught here
-            setMessage("Error: " + error.message);
+            // setMessage("Error: " + error.message);
+                 setDialogTitle("Update Status");
+                setDialogMessage("Error: " + error.message);
+                setDialogType("success");
+                //  setDialogOpen(true);
         } finally {
-            setSnackbarOpen(true); // Always show snackbar after attempt
+            // setSnackbarOpen(true); // Always show snackbar after attempt
+            setDialogOpen(true);
         }
     };
     return (
@@ -873,6 +940,13 @@ const getTextFieldStyles = (appBarColor,fieldValue) => ({
                         </Button>
                     </DialogActions>
                 </Dialog>
+                  <CustomAlertDialog
+                  open={dialogOpen}
+                  onClose={handleDialogClose}
+                  title={dialogTitle}
+                  message={dialogMessage}
+                  type={dialogType}
+                />
             </Box>
         </ThemeProvider>
     );

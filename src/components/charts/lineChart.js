@@ -40,6 +40,7 @@ const cleanAreaColor = lineColor.replace(/['"\\]/g, '');
 console.log("AreaChart areaColor (cleaned):", cleanAreaColor);
       console.log("AreaChart lineColor:", lineColor);
     const validColor = /^#[0-9A-F]{6}$/i.test(cleanAreaColor) ? cleanAreaColor : '#000000';
+ const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
 
     const forecastLineColor = useSelector((state) => state.chartColor.forecastLineColor || "#008000");
     const toolTipOptions = useSelector((state) => state.toolTip);
@@ -389,7 +390,7 @@ try {
                     let tooltipContent = `<div style="background: white; border: 1px solid #ccc; padding: 10px; border-radius: 4px;">`;
                     
                     if (toolTipOptions.heading) {
-                        tooltipContent += `<div style="font-weight: bold; margin-bottom: 5px; color: ${headingColor || '#000'}">
+                        tooltipContent += `<div style="font-weight: bold; margin-bottom: 5px; ">
                             <h4>${aggregation || 'Aggregation'} of ${xAxis || 'X-Axis'} vs ${yAxis || 'Y-Axis'}</h4>
                         </div>`;
                     }
@@ -411,6 +412,14 @@ try {
                 }
                 : undefined
         },
+        dataLabels: {
+                    enabled: showDataLabels, 
+                    style: {
+                        fontSize: '10px',
+                        fontWeight: 500,
+                        color: getContrastColor(lineColor|| '#ffffff'), // Y-axis title color
+                    },
+                },
         stroke: {
             width: [3, 3],
             curve: 'straight', // Changed from 'smooth' to 'straight' for sharp lines
@@ -426,7 +435,9 @@ try {
             type: isDateCategorylabel ? "datetime" : "category",
             categories: allCategories,
             tickAmount: Math.min(allCategories.length, 20),
-            title: { text: xAxis },
+            title: { text: xAxis,style: {
+          color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+        } },
             labels: {
                 offsetX: 0,
                 rotate: -45,
@@ -450,7 +461,9 @@ try {
             }
         },
         yaxis: {
-            title: { text: yAxis },
+            title: { text: yAxis,style: {
+          color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+        } },
             labels: {
                 style: { fontSize: `${yFontSize}px`, fontFamily: fontStyle, colors: Array(10).fill(resolvedColor), },
                 // formatter: function (value) {

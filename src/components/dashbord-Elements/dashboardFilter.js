@@ -184,8 +184,8 @@ const handleNativeColorClick = () => {
               </Grid>
             )} */} 
             {(
-  isEditChartPage && !['pie','Donut','polarArea','duealbarChart', 'duealChart',].includes(chartType)||
- ! ['duealbarChart', 'duealChart', 'Butterfly', 'treeHierarchy', 'wordCloud', 'AiCharts','pie','Donut','polarArea'].includes(currentChartType)
+  isEditChartPage && !['pie','Donut','polarArea','duealbarChart', 'duealChart','hierarchialBarChart'].includes(chartType)||
+ ! ['duealbarChart', 'duealChart', 'Butterfly', 'treeHierarchy', 'wordCloud', 'AiCharts','pie','Donut','polarArea','hierarchialBarChart'].includes(currentChartType)
 ) && (
   <Grid item>
     <Tooltip title="Chart Color" arrow>

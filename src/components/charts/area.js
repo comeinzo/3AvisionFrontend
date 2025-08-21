@@ -14,6 +14,7 @@ const AreaChart = ({ categories = [], values = [], aggregation }) => {
   // Redux selectors
   console.log("AreaChart Data", categories,values);
 const location = useLocation(); // ✅ Get the current route
+ const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
 
   const dispatch = useDispatch();
   const xAxis = useSelector((state) => state.chart.xAxis);
@@ -393,7 +394,7 @@ try {
       },
     },
     dataLabels: {
-      enabled: false,
+      enabled: showDataLabels,
     },
     plotOptions: {
       area: {

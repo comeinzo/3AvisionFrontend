@@ -10,6 +10,7 @@ import ZoomOutIcon from '@mui/icons-material/ZoomOut';
 import { getContrastColor } from '../../utils/colorUtils';
 import { setBarColor,setClickedTool } from '../../features/Dashboard-Slice/chartSlice';
 const Treemap = ({ categories = [], values = [],aggregation=[] }) => {
+    const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
     
       const dispatch = useDispatch();
     console.log("Duel Axis Chart Props:", { categories, });
@@ -371,7 +372,7 @@ try {
             .duration(1000)
             .attr('width', d => d.x1 - d.x0)
             .attr('height', d => d.y1 - d.y0);
-    
+    if (showDataLabels) {
         nodes.append('text')
     .attr('x', 5)
     .attr('y', 15)
@@ -405,10 +406,12 @@ try {
         return `<tspan x="5" dy="0">${formatValue(d.data.name)}</tspan>
                 <tspan x="5" dy="1.2em">${formatValue(d.data.value)}</tspan>`;
     })
+    
     .style('font-family', fontStyle)
     .transition()
     .duration(4000)
     .style('opacity', 1);
+}
     const zoom = d3.zoom()
     .scaleExtent([0.5, 3])
     .on('zoom', (event) => {

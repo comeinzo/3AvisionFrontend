@@ -7,7 +7,10 @@ import {
   setPrimaryKeyColumn,
   uploadCsv,
 } from '../../features/csvFile/csvFileSlice';
+import CustomAlertDialog from '../../components/DashboardActions/CustomAlertDialog'; // Import the new component
+import ConfirmationDialog from '../../components/DashboardActions/ConfirmationDialog';
 
+import InfoIcon from '@mui/icons-material/Info'; // Added for dialog
 import {
   CssBaseline,
   Button,
@@ -127,7 +130,7 @@ const UploadZone = styled(Paper)(({ theme, isDragOver }) => ({
 }));
 
 const GradientBox = styled(Box)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  // background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   borderRadius: 16,
   padding: theme.spacing(3),
   color: 'white',
@@ -196,25 +199,63 @@ const CsvUpload = () => {
   const [isEstimatedCount, setIsEstimatedCount] = useState(false);
   const fontStyle = useSelector((state) => state.barColor.fontStyle);
 const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogTitle, setDialogTitle] = React.useState('');
+  const [dialogMessage, setDialogMessage] = React.useState('');
+  const [dialogType, setDialogType] = React.useState(''); // 'success', 'error', 'info'
+const [confirmOpen, setConfirmOpen] = React.useState(false);
+const [confirmMessage, setConfirmMessage] = React.useState('');
+const [confirmTitle, setConfirmTitle] = React.useState('');
+const [confirmResolve, setConfirmResolve] = React.useState(null);
+
+const navigate = useNavigate(); // Initialize useNavigate
+useEffect(() => {
+  const handlePopState = () => {
+    navigate('/data-source-page');
+  };
+
+  window.addEventListener('popstate', handlePopState);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, [navigate]);
+const handleConfirm = (title, message) => {
+  return new Promise((resolve) => {
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+    setConfirmResolve(() => resolve);
+  });
+};
+
+const handleConfirmClose = (result) => {
+  setConfirmOpen(false);
+  if (confirmResolve) confirmResolve(result);
+};
+const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
   const steps = [
     { label: 'Upload File', description: 'Select your csv file' },
     { label: 'Set Primary Key', description: 'Choose your primary key column' },
     { label: 'Upload Data', description: 'Import data to database' },
   ];
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   // Prevent back navigation
-  useEffect(() => {
-    const disableBackButton = () => {
-      navigate('/');
-    };
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', disableBackButton);
-    return () => {
-      window.removeEventListener('popstate', disableBackButton);
-    };
-  }, [navigate]);
+  // useEffect(() => {
+  //   const disableBackButton = () => {
+  //     navigate('/');
+  //   };
+  //   window.history.pushState(null, '', window.location.href);
+  //   window.addEventListener('popstate', disableBackButton);
+  //   return () => {
+  //     window.removeEventListener('popstate', disableBackButton);
+  //   };
+  // }, [navigate]);
 
   // Handle upload status snackbar
   useEffect(() => {
@@ -223,17 +264,19 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
         typeof uploadError === 'object'
           ? uploadError.message || JSON.stringify(uploadError)
           : uploadError;
-      setSnackbarMessage(message);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+    setDialogTitle('Error');
+    setDialogMessage(uploadError.message);
+    setDialogType('error');
+    setDialogOpen(true);
     } else if (uploadSuccess) {
       const message =
         typeof uploadSuccess === 'object'
           ? uploadSuccess.message || JSON.stringify(uploadSuccess)
           : 'File uploaded successfully...';
-      setSnackbarMessage(message);
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+       setDialogTitle('Success');
+    setDialogMessage(message);
+    setDialogType('success');
+    setDialogOpen(true);
     }
   }, [uploadError, uploadSuccess]);
 
@@ -256,118 +299,241 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
     return count.toLocaleString();
   };
 
+  // const handleFileChange = async (e) => {
+  //   const selectedFile = e.target.files[0];
+  //   if (!selectedFile) return;
+
+  //   if (selectedFile.type !== 'text/csv') {
+  //     dispatch(setFile(null));
+  //     setSnackbarMessage('Please upload a valid CSV file.');
+  //     setSnackbarSeverity('error');
+  //     setSnackbarOpen(true);
+  //     setIsProcessing(false);
+  //     return;
+  //   }
+
+  //   dispatch(setFile(selectedFile));
+  //   setCsvData([]);
+  //   setTotalRows(0);
+  //   setTotalColumns(0);
+  //   setIsProcessing(true);
+  //   setProcessingStep('Parsing CSV...');
+  //   setFileProcessingProgress(0);
+
+  //   try {
+  //     const startTime = performance.now();
+  //     let currentProgress = 10;
+
+  //     const progressTimer = setInterval(() => {
+  //       if (currentProgress < 90) {
+  //         currentProgress += 10;
+  //         setFileProcessingProgress(currentProgress);
+  //         setProcessingStep(`Parsing CSV... ${currentProgress}%`);
+  //       }
+  //     }, 50);
+
+  //     Papa.parse(selectedFile, {
+  //       header: true,
+  //       worker: true,
+  //       complete: (results) => {
+  //         clearInterval(progressTimer);
+  //         try {
+  //           let data = results.data;
+  //           if (!data || data.length === 0) {
+  //             throw new Error('The uploaded CSV file is empty or contains no data rows.');
+  //           }
+
+  //           const headers = Object.keys(data[0]);
+  //           let primaryKeyColumnIndex = null;
+
+  //           // Find a column with all unique values for primary key
+  //           for (let i = 0; i < headers.length; i++) {
+  //             const uniqueValues = new Set(data.map((row) => row[headers[i]]));
+  //             if (uniqueValues.size === data.length) {
+  //               primaryKeyColumnIndex = i;
+  //               break;
+  //             }
+  //           }
+
+  //           // If no unique column, add 'id' column
+  //           if (primaryKeyColumnIndex === null) {
+  //             const newColumnName = 'id';
+  //             data = data.map((row, index) => ({ [newColumnName]: index + 1, ...row }));
+  //             headers.unshift(newColumnName);
+  //           }
+
+  //           setCsvData(data.slice(0, 5));
+  //           setTotalRows(data.length);
+  //           setTotalColumns(headers.length);
+  //           dispatch(setColumnHeadings(headers));
+  //           dispatch(setPrimaryKeyColumn(primaryKeyColumnIndex ?? 0));
+
+  //           const endTime = performance.now();
+  //           const processingTime = endTime - startTime;
+
+  //           const rowCountText =
+  //             data.length > 1000
+  //               ? `${(data.length / 1000).toFixed(1)}K`
+  //               : data.length.toLocaleString();
+
+  //           setSnackbarMessage(
+  //             `CSV parsed in ${processingTime.toFixed(0)}ms. ${rowCountText} rows, ${headers.length} columns.`
+  //           );
+  //           setSnackbarSeverity('success');
+  //           setSnackbarOpen(true);
+  //           setActiveStep(1);
+  //         } catch (error) {
+  //           setSnackbarMessage(error.message || 'Error processing CSV data.');
+  //           setSnackbarSeverity('error');
+  //           setSnackbarOpen(true);
+  //         } finally {
+  //           setIsProcessing(false);
+  //           setProcessingStep('');
+  //           setFileProcessingProgress(0);
+  //         }
+  //       },
+  //       error: () => {
+  //         clearInterval(progressTimer);
+  //         setSnackbarMessage('Error parsing CSV file.');
+  //         setSnackbarSeverity('error');
+  //         setSnackbarOpen(true);
+  //         setIsProcessing(false);
+  //         setProcessingStep('');
+  //         setFileProcessingProgress(0);
+  //       },
+  //     });
+  //   } catch (error) {
+  //     setSnackbarMessage(`Unexpected error: ${error.message}`);
+  //     setSnackbarSeverity('error');
+  //     setSnackbarOpen(true);
+  //     setIsProcessing(false);
+  //     setProcessingStep('');
+  //     setFileProcessingProgress(0);
+  //   }
+  // };
   const handleFileChange = async (e) => {
-    const selectedFile = e.target.files[0];
-    if (!selectedFile) return;
+  const selectedFile = e.target.files[0];
+  if (!selectedFile) return;
 
-    if (selectedFile.type !== 'text/csv') {
-      dispatch(setFile(null));
-      setSnackbarMessage('Please upload a valid CSV file.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      setIsProcessing(false);
-      return;
-    }
+  if (selectedFile.type !== 'text/csv') {
+    dispatch(setFile(null));
+    // Show dialog for invalid file type
+    setDialogTitle('Invalid File Type');
+    setDialogMessage('Please upload a valid CSV file.');
+    setDialogType('error');
+    setDialogOpen(true);
+    setIsProcessing(false);
+    return;
+  }
 
-    dispatch(setFile(selectedFile));
-    setCsvData([]);
-    setTotalRows(0);
-    setTotalColumns(0);
-    setIsProcessing(true);
-    setProcessingStep('Parsing CSV...');
-    setFileProcessingProgress(0);
+  dispatch(setFile(selectedFile));
+  setCsvData([]);
+  setTotalRows(0);
+  setTotalColumns(0);
+  setIsProcessing(true);
+  setProcessingStep('Parsing CSV...');
+  setFileProcessingProgress(0);
 
-    try {
-      const startTime = performance.now();
-      let currentProgress = 10;
+  try {
+    const startTime = performance.now();
+    let currentProgress = 10;
 
-      const progressTimer = setInterval(() => {
-        if (currentProgress < 90) {
-          currentProgress += 10;
-          setFileProcessingProgress(currentProgress);
-          setProcessingStep(`Parsing CSV... ${currentProgress}%`);
-        }
-      }, 50);
+    const progressTimer = setInterval(() => {
+      if (currentProgress < 90) {
+        currentProgress += 10;
+        setFileProcessingProgress(currentProgress);
+        setProcessingStep(`Parsing CSV... ${currentProgress}%`);
+      }
+    }, 50);
 
-      Papa.parse(selectedFile, {
-        header: true,
-        worker: true,
-        complete: (results) => {
-          clearInterval(progressTimer);
-          try {
-            let data = results.data;
-            if (!data || data.length === 0) {
-              throw new Error('The uploaded CSV file is empty or contains no data rows.');
-            }
-
-            const headers = Object.keys(data[0]);
-            let primaryKeyColumnIndex = null;
-
-            // Find a column with all unique values for primary key
-            for (let i = 0; i < headers.length; i++) {
-              const uniqueValues = new Set(data.map((row) => row[headers[i]]));
-              if (uniqueValues.size === data.length) {
-                primaryKeyColumnIndex = i;
-                break;
-              }
-            }
-
-            // If no unique column, add 'id' column
-            if (primaryKeyColumnIndex === null) {
-              const newColumnName = 'id';
-              data = data.map((row, index) => ({ [newColumnName]: index + 1, ...row }));
-              headers.unshift(newColumnName);
-            }
-
-            setCsvData(data.slice(0, 5));
-            setTotalRows(data.length);
-            setTotalColumns(headers.length);
-            dispatch(setColumnHeadings(headers));
-            dispatch(setPrimaryKeyColumn(primaryKeyColumnIndex ?? 0));
-
-            const endTime = performance.now();
-            const processingTime = endTime - startTime;
-
-            const rowCountText =
-              data.length > 1000
-                ? `${(data.length / 1000).toFixed(1)}K`
-                : data.length.toLocaleString();
-
-            setSnackbarMessage(
-              `CSV parsed in ${processingTime.toFixed(0)}ms. ${rowCountText} rows, ${headers.length} columns.`
-            );
-            setSnackbarSeverity('success');
-            setSnackbarOpen(true);
-            setActiveStep(1);
-          } catch (error) {
-            setSnackbarMessage(error.message || 'Error processing CSV data.');
-            setSnackbarSeverity('error');
-            setSnackbarOpen(true);
-          } finally {
-            setIsProcessing(false);
-            setProcessingStep('');
-            setFileProcessingProgress(0);
+    Papa.parse(selectedFile, {
+      header: true,
+      worker: true,
+      complete: (results) => {
+        clearInterval(progressTimer);
+        try {
+          let data = results.data;
+          if (!data || data.length === 0) {
+            throw new Error('The uploaded CSV file is empty or contains no data rows.');
           }
-        },
-        error: () => {
-          clearInterval(progressTimer);
-          setSnackbarMessage('Error parsing CSV file.');
-          setSnackbarSeverity('error');
-          setSnackbarOpen(true);
+
+          const headers = Object.keys(data[0]);
+          let primaryKeyColumnIndex = null;
+
+          // Find a column with all unique values for primary key
+          for (let i = 0; i < headers.length; i++) {
+            const uniqueValues = new Set(data.map((row) => row[headers[i]]));
+            if (uniqueValues.size === data.length) {
+              primaryKeyColumnIndex = i;
+              break;
+            }
+          }
+
+          // If no unique column, add 'id' column
+          if (primaryKeyColumnIndex === null) {
+            const newColumnName = 'id';
+            data = data.map((row, index) => ({ [newColumnName]: index + 1, ...row }));
+            headers.unshift(newColumnName);
+          }
+
+          setCsvData(data.slice(0, 5));
+          setTotalRows(data.length);
+          setTotalColumns(headers.length);
+          dispatch(setColumnHeadings(headers));
+          dispatch(setPrimaryKeyColumn(primaryKeyColumnIndex ?? 0));
+
+          const endTime = performance.now();
+          const processingTime = endTime - startTime;
+
+          const rowCountText =
+            data.length > 1000
+              ? `${(data.length / 1000).toFixed(1)}K`
+              : data.length.toLocaleString();
+
+          // Show success dialog
+          setDialogTitle('Success');
+          setDialogMessage(
+            `CSV parsed in ${processingTime.toFixed(0)}ms. ${rowCountText} rows, ${headers.length} columns.`
+          );
+          setDialogType('success');
+          setDialogOpen(true);
+          
+          setActiveStep(1);
+        } catch (error) {
+          // Show error dialog
+          setDialogTitle('Error');
+          setDialogMessage(error.message || 'Error processing CSV data.');
+          setDialogType('error');
+          setDialogOpen(true);
+        } finally {
           setIsProcessing(false);
           setProcessingStep('');
           setFileProcessingProgress(0);
-        },
-      });
-    } catch (error) {
-      setSnackbarMessage(`Unexpected error: ${error.message}`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      setIsProcessing(false);
-      setProcessingStep('');
-      setFileProcessingProgress(0);
-    }
-  };
+        }
+      },
+      error: () => {
+        clearInterval(progressTimer);
+        // Show parse error dialog
+        setDialogTitle('Error');
+        setDialogMessage('Error parsing CSV file.');
+        setDialogType('error');
+        setDialogOpen(true);
+        setIsProcessing(false);
+        setProcessingStep('');
+        setFileProcessingProgress(0);
+      },
+    });
+  } catch (error) {
+    // Show unexpected error dialog
+    setDialogTitle('Error');
+    setDialogMessage(`Unexpected error: ${error.message}`);
+    setDialogType('error');
+    setDialogOpen(true);
+    setIsProcessing(false);
+    setProcessingStep('');
+    setFileProcessingProgress(0);
+  }
+};
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -386,100 +552,216 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
     if (droppedFile) handleFileChange({ target: { files: [droppedFile] } });
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+
+  //   if (!file) {
+  //     alert('Please upload a file.');
+  //     return;
+  //   }
+
+  //   // Ensure primary key column setup if needed
+  //   if (primaryKeyColumn === null && csvData.length > 1) {
+  //     if (!csvData[0].includes('id')) {
+  //       const newHeaders = ['id', ...Object.keys(csvData[0])];
+  //       const newData = csvData.slice(1).map((row, index) => [index + 1, ...row]);
+  //       setCsvData([newHeaders, ...newData]);
+  //       dispatch(setPrimaryKeyColumn(0));
+  //     }
+  //   }
+
+  //   setUploadProgress(0);
+  //   const currentTableName = file.name.toLowerCase().replace(/\s+/g, '_').replace(/\..+$/, '');
+  //   const existingTableNames = await fetchTableNamesAPI(databaseName);
+
+  //   if (existingTableNames.includes(currentTableName)) {
+  //     const existingColumns = await fetchTableColumnsAPI(currentTableName, company_database);
+  //     const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
+  //     const isTableInUse = await checkIfTableInUse(currentTableName);
+
+  //     if (isTableInUse) {
+  //       const userChoice = window.confirm(
+  //         `The table "${currentTableName}" is being used for chart creation. Do you want to update it?`
+  //       );
+  //       if (!userChoice) {
+  //         alert('Table update canceled.');
+  //         return;
+  //       }
+  //       // Check for column mismatches
+  //       const mismatchedColumns = uploadedColumns.filter(
+  //         (col) => !existingColumns.includes(col)
+  //       );
+  //       const missingColumns = existingColumns.filter(
+  //         (col) => !uploadedColumns.includes(col)
+  //       );
+
+  //       if (mismatchedColumns.length > 0) {
+  //         alert(
+  //           `Column mismatch! The following columns in your file do not exist in the existing table "${currentTableName}": ${mismatchedColumns.join(
+  //             ', '
+  //           )}.`
+  //         );
+  //         return;
+  //       }
+  //       if (missingColumns.length > 0) {
+  //         alert(
+  //           `Missing columns! The following columns are required in the existing table "${currentTableName}": ${missingColumns.join(
+  //             ', '
+  //           )}. Please update your file and try again.`
+  //         );
+  //         return;
+  //       }
+  //     }
+
+  //     // Proceed to upload
+  //     dispatch(
+  //       uploadCsv({
+  //         user_id,
+  //         file,
+  //         primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+  //         company_database,
+  //         onUploadProgress: (progressEvent) => {
+  //           const { loaded, total } = progressEvent;
+  //           const percentage = Math.floor((loaded * 100) / total);
+  //           setUploadProgress(percentage);
+  //         },
+  //       })
+  //     );
+  //   } else {
+  //     // Table doesn't exist, create new
+  //     alert(`The table "${currentTableName}" does not exist. Creating new...`);
+  //     dispatch(
+  //       uploadCsv({
+  //         user_id,
+  //         file,
+  //         primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+  //         company_database,
+  //         onUploadProgress: (progressEvent) => {
+  //           const { loaded, total } = progressEvent;
+  //           const percentage = Math.floor((loaded * 100) / total);
+  //           setUploadProgress(percentage);
+  //         },
+  //       })
+  //     );
+  //   }
+  // };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!file) {
-      alert('Please upload a file.');
-      return;
+  if (!file) {
+    setDialogTitle('No File Uploaded');
+    setDialogMessage('Please upload a file before submitting.');
+    setDialogType('error');
+    setDialogOpen(true);
+    return;
+  }
+
+  // Ensure primary key column setup if needed
+  if (primaryKeyColumn === null && csvData.length > 1) {
+    if (!csvData[0].includes('id')) {
+      const newHeaders = ['id', ...Object.keys(csvData[0])];
+      const newData = csvData.slice(1).map((row, index) => [index + 1, ...row]);
+      setCsvData([newHeaders, ...newData]);
+      dispatch(setPrimaryKeyColumn(0));
     }
+  }
 
-    // Ensure primary key column setup if needed
-    if (primaryKeyColumn === null && csvData.length > 1) {
-      if (!csvData[0].includes('id')) {
-        const newHeaders = ['id', ...Object.keys(csvData[0])];
-        const newData = csvData.slice(1).map((row, index) => [index + 1, ...row]);
-        setCsvData([newHeaders, ...newData]);
-        dispatch(setPrimaryKeyColumn(0));
-      }
-    }
+  setUploadProgress(0);
+  const currentTableName = file.name.toLowerCase().replace(/\s+/g, '_').replace(/\..+$/, '');
+  const existingTableNames = await fetchTableNamesAPI(databaseName);
 
-    setUploadProgress(0);
-    const currentTableName = file.name.toLowerCase().replace(/\s+/g, '_').replace(/\..+$/, '');
-    const existingTableNames = await fetchTableNamesAPI(databaseName);
+  if (existingTableNames.includes(currentTableName)) {
+    const existingColumns = await fetchTableColumnsAPI(currentTableName, company_database);
+    const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
+    const isTableInUse = await checkIfTableInUse(currentTableName);
 
-    if (existingTableNames.includes(currentTableName)) {
-      const existingColumns = await fetchTableColumnsAPI(currentTableName, company_database);
-      const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
-      const isTableInUse = await checkIfTableInUse(currentTableName);
+ if (isTableInUse) {
+            
+            // const userChoice = window.confirm(
+            //   `The table "${currentTableName}" is being used for chart creation. Do you want to proceed with updating it?`
+            // );
+            // if (!userChoice) {
+            //   setDialogTitle('Information');
+            //   setDialogMessage('Upload cancelled by user.');
+            //   setDialogType('info');
+            //   setDialogOpen(true);
+            //   return;
+            // }
+            const proceed = await handleConfirm(
+  `The table "${currentTableName}" is being used for chart creation. Do you want to proceed with updating it?`
+);
+if (!proceed) {
+  setDialogTitle('Information');
+  setDialogMessage(`Upload cancelled by user. You chose "Cancel" for updating table "${currentTableName}".`);
+  setDialogType('info');
+  setDialogOpen(true);
+  return;
+}
+            const mismatchedColumns = uploadedColumns.filter((col) => !existingColumns.includes(col));
+            const missingColumns = existingColumns.filter((col) => !uploadedColumns.includes(col));
 
-      if (isTableInUse) {
-        const userChoice = window.confirm(
-          `The table "${currentTableName}" is being used for chart creation. Do you want to update it?`
-        );
-        if (!userChoice) {
-          alert('Table update canceled.');
-          return;
-        }
-        // Check for column mismatches
-        const mismatchedColumns = uploadedColumns.filter(
-          (col) => !existingColumns.includes(col)
-        );
-        const missingColumns = existingColumns.filter(
-          (col) => !uploadedColumns.includes(col)
-        );
+            if (mismatchedColumns.length > 0) {
+              setDialogTitle('Error');
+              setDialogMessage(`Column mismatch detected! The following columns in the uploaded file do not exist in the existing table "${currentTableName}": ${mismatchedColumns.join(", ")}.`);
+              setDialogType('error');
+              setDialogOpen(true);
+              return;
+            }
 
-        if (mismatchedColumns.length > 0) {
-          alert(
-            `Column mismatch! The following columns in your file do not exist in the existing table "${currentTableName}": ${mismatchedColumns.join(
-              ', '
-            )}.`
-          );
-          return;
-        }
-        if (missingColumns.length > 0) {
-          alert(
-            `Missing columns! The following columns are required in the existing table "${currentTableName}": ${missingColumns.join(
-              ', '
-            )}. Please update your file and try again.`
-          );
-          return;
-        }
-      }
+            if (missingColumns.length > 0) {
+              setDialogTitle('Error');
+              setDialogMessage(`Missing columns detected! The following columns are required but not found in the uploaded file: ${missingColumns.join(", ")}. Please rename the sheet and upload again.`);
+              setDialogType('error');
+              setDialogOpen(true);
+              return;
+            }
 
-      // Proceed to upload
-      dispatch(
-        uploadCsv({
-          user_id,
-          file,
-          primaryKeyColumnName: columnHeadings[primaryKeyColumn],
-          company_database,
-          onUploadProgress: (progressEvent) => {
-            const { loaded, total } = progressEvent;
-            const percentage = Math.floor((loaded * 100) / total);
-            setUploadProgress(percentage);
-          },
-        })
-      );
-    } else {
-      // Table doesn't exist, create new
-      alert(`The table "${currentTableName}" does not exist. Creating new...`);
-      dispatch(
-        uploadCsv({
-          user_id,
-          file,
-          primaryKeyColumnName: columnHeadings[primaryKeyColumn],
-          company_database,
-          onUploadProgress: (progressEvent) => {
-            const { loaded, total } = progressEvent;
-            const percentage = Math.floor((loaded * 100) / total);
-            setUploadProgress(percentage);
-          },
-        })
-      );
-    }
-  };
+            setDialogTitle('Information');
+            setDialogMessage(`Table "${currentTableName}" is in use, but the uploaded file matches the required structure. Proceeding with upload.`);
+            setDialogType('info');
+            setDialogOpen(true);
+          }
+        
 
+  
+
+    // If not in use, proceed to upload
+    dispatch(
+      uploadCsv({
+        user_id,
+        file,
+        primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+        company_database,
+        onUploadProgress: (progressEvent) => {
+          const { loaded, total } = progressEvent;
+          const percentage = Math.floor((loaded * 100) / total);
+          setUploadProgress(percentage);
+        },
+      })
+    );
+  } else {
+    // Table doesn't exist
+    setDialogTitle('Create New Table');
+    setDialogMessage(`The table "${currentTableName}" does not exist. Creating new...`);
+    setDialogType('info');
+    setDialogOpen(true);
+    // Proceed to upload after user dismisses dialog
+    dispatch(
+      uploadCsv({
+        user_id,
+        file,
+        primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+        company_database,
+        onUploadProgress: (progressEvent) => {
+          const { loaded, total } = progressEvent;
+          const percentage = Math.floor((loaded * 100) / total);
+          setUploadProgress(percentage);
+        },
+      })
+    );
+  }
+};
   const handleConfirmationChoice = (choice) => {
     setConfirmationChoice(choice);
     setConfirmationOpen(false);
@@ -521,7 +803,9 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
               >
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   {/* Header */}
-                  <GradientBox sx={{ mb: 3 }}>
+                  {/* <GradientBox sx={{ mb: 3 }}> */}
+                  <GradientBox sx={{ background: `linear-gradient(135deg, ${appBarColor}88 0%, ${appBarColor}44 100%)`, }} >
+                   
                     <Typography
                       variant={isMobile ? 'h5' : 'h4'}
                       sx={{ fontWeight: 700, mb: 1,fontFamily: fontStyle  }}
@@ -1231,6 +1515,19 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
           {snackbarMessage}
         </Alert>
       </Snackbar>
+       <CustomAlertDialog
+            open={dialogOpen}
+            onClose={handleDialogClose}
+            title={dialogTitle}
+            message={dialogMessage}
+            type={dialogType}
+          />
+          <ConfirmationDialog
+        open={confirmOpen}
+        onClose={handleConfirmClose}
+        title={confirmTitle}
+        message={confirmMessage}
+      />
     </>
   );
 };

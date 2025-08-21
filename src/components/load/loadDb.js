@@ -19,7 +19,9 @@ import { setShowDashboard, setCheckedPaths } from '../../features/excelFileSlice
 import { resetChartState } from '../../features/Dashboard-Slice/chartSlice';
 import { resetColumnInfo } from '../../features/Dashboard-Slice/dashboardtableSlice';
 import { resetChartType } from '../../features/Dashboard-Slice/chartTypeSlice';
-
+import {resetToolTip} from '../../features/ToolTip/toolTipSlice';
+  import CustomAlertDialog from '../DashboardActions/CustomAlertDialog';
+import ConfirmationDialog from '../DashboardActions/ConfirmationDialog';
 import {
   fetchUsers,
   fetchTableNamesFromExternalDB,
@@ -27,7 +29,10 @@ import {
   fetchDateColumnsAPIdb, // Re-using from LoadExcelFile as the logic is similar
   fetchTableColumnsWithTypesAPIdb, // Re-using from LoadExcelFile
   checkViewExistsAPIdb,
-  createViewAPIdb,
+  createViewAPIdb,fetchTableNamesAPI,
+  fetchTableColumnsWithTypesAPI,
+  fetchDateColumnsAPI,
+  fetchTableDetailsAPI
 } from '../../utils/api';
 import tinycolor from 'tinycolor2';
 import { debounce } from 'lodash';
@@ -63,7 +68,7 @@ const LoadDbFile = () => {
   const [endDate, setEndDate] = useState('');
   const [enableDateFilter, setEnableDateFilter] = useState(false);
   const [isDateFilterExpanded, setIsDateFilterExpanded] = useState(false);
-
+const LOCAL_DB_OPTION = { id: 'local', saveName: 'Local Database' };
   // Column selection states
   const [allColumns, setAllColumns] = useState([]);
   const [columnTypes, setColumnTypes] = useState({});
@@ -85,6 +90,46 @@ const LoadDbFile = () => {
   const [viewCreated, setViewCreated] = useState(false);
 const fontStyle = useSelector((state) => state.barColor.fontStyle);
   // Helper function to format date for input
+  const [dialogOpen, setDialogOpen] = React.useState(false);
+      const [dialogTitle, setDialogTitle] = React.useState('');
+      const [dialogMessage, setDialogMessage] = React.useState('');
+      const [dialogType, setDialogType] = React.useState(''); // 'success', 'error', 'info'
+    const [confirmOpen, setConfirmOpen] = React.useState(false);
+    const [confirmMessage, setConfirmMessage] = React.useState('');
+    const [confirmTitle, setConfirmTitle] = React.useState('');
+    const [confirmResolve, setConfirmResolve] = React.useState(null);
+
+
+
+    
+        
+    useEffect(() => {
+      if (loadSuccess || viewCreated) {
+        setDialogTitle("Success");
+        setDialogType("success");
+        if (viewCreated) {
+          setDialogMessage("Database view created successfully!");
+        } else {
+          const selectedCols = enableColumnFilter && selectedColumns.length > 0
+            ? `${selectedColumns.length} selected columns`
+            : 'all columns';
+    
+          const dateRange = isDateFilterComplete
+            ? ` (${formatDateForDisplay(startDate)} - ${formatDateForDisplay(endDate)})`
+            : '';
+    
+          const conditionCount = isColumnConditionsComplete
+            ? ` and ${columnConditions.filter(c => c.column && c.operator).length} condition(s)`
+            : '';
+    
+          setDialogMessage(`Table data loaded with ${selectedCols}${dateRange}${conditionCount}`);
+        }
+    
+        setDialogOpen(true);
+      }
+    }, [loadSuccess, viewCreated]);
+    
+
   const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
@@ -155,83 +200,185 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
   }, [databaseName]);
 
   // Fetch Table Names for Selected User
-  useEffect(() => {
-    if (selectedUser) {
-      sessionStorage.setItem('selectedUser', selectedUser);
-      sessionStorage.setItem('connectionType', 'external');
-      sessionStorage.removeItem('xAxis');
-      sessionStorage.removeItem('yAxis');
-      sessionStorage.removeItem('aggregate');
-      sessionStorage.removeItem('selectedChartType');
-      Object.keys(sessionStorage).forEach((key) => {
-        if (key.startsWith('tooltipHeading_') || key.startsWith('chartCustomization')) {
-          sessionStorage.removeItem(key);
-        }
-      });
-      sessionStorage.removeItem('currentTooltipHeading');
+  // useEffect(() => {
+  //   if (selectedUser) {
+  //     sessionStorage.setItem('selectedUser', selectedUser);
+  //     sessionStorage.setItem('connectionType', 'external');
+  //     sessionStorage.removeItem('xAxis');
+  //     sessionStorage.removeItem('yAxis');
+  //     sessionStorage.removeItem('aggregate');
+  //     sessionStorage.removeItem('selectedChartType');
+  //     Object.keys(sessionStorage).forEach((key) => {
+  //       if (key.startsWith('tooltipHeading_') || key.startsWith('chartCustomization')) {
+  //         sessionStorage.removeItem(key);
+  //       }
+  //     });
+  //     sessionStorage.removeItem('currentTooltipHeading');
 
-      const fetchTables = async () => {
-        setIsLoading(true);
-        try {
-          const data = await fetchTableNamesFromExternalDB(databaseName, selectedUser);
-          setTableNames(data.sort());
-          // If a table was previously selected, try to re-select it
-          const savedTable = sessionStorage.getItem('selectedTable');
-          if (savedTable && data.includes(savedTable)) {
-            setSelectedTable(savedTable);
+  //     const fetchTables = async () => {
+  //       setIsLoading(true);
+  //       try {
+  //         const data = await fetchTableNamesFromExternalDB(databaseName, selectedUser);
+  //         setTableNames(data.sort());
+  //         // If a table was previously selected, try to re-select it
+  //         const savedTable = sessionStorage.getItem('selectedTable');
+  //         if (savedTable && data.includes(savedTable)) {
+  //           setSelectedTable(savedTable);
+  //         } else {
+  //           setSelectedTable(''); // Clear selected table if not found
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching table names:', error);
+  //         setTableNames([]);
+  //       } finally {
+  //         setIsLoading(false);
+  //       }
+  //     };
+  //     fetchTables();
+  //   } else {
+  //     setTableNames([]);
+  //     setSelectedTable('');
+  //     setTableDetails(null);
+  //     resetFilters();
+  //   }
+  // }, [databaseName, selectedUser]);
+useEffect(() => {
+  if (selectedUser) {
+    const fetchTables = async () => {
+      setIsLoading(true);
+      try {
+        let data = [];  // declare here
+        if (selectedUser === 'local') {
+          // Fetch table names for local DB
+          data = await fetchTableNamesAPI(databaseName);
+        } else {
+          // Existing external fetch
+          data = await fetchTableNamesFromExternalDB(databaseName, selectedUser);
+        }
+        data = data.sort();
+        setTableNames(data);
+
+        // Re-select previous if available
+        const savedTable = sessionStorage.getItem('selectedTable');
+        if (savedTable && data.includes(savedTable)) {
+          setSelectedTable(savedTable);
+        } else {
+          setSelectedTable('');
+        }
+      } catch (error) {
+        console.error('Error fetching table names:', error);
+        setTableNames([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchTables();
+  } else {
+    // Reset if no user
+    setTableNames([]);
+    setSelectedTable('');
+    setTableDetails(null);
+    resetFilters();
+  }
+}, [databaseName, selectedUser]);
+
+
+  // // Fetch columns and column types when table is selected
+  // useEffect(() => {
+  //   if (selectedUser && selectedTable) {
+  //     const fetchColumns = async () => {
+  //       try {
+  //         // Fetch all columns with their data types
+          
+  //         // const allColsWithTypes = await fetchTableColumnsWithTypesAPIdb(databaseName, selectedTable,selectedUser);
+  //          if (selectedUser === 'local') {
+  //                             // Fetch table names for local DB
+  //               const allColsWithTypes = await fetchTableColumnsWithTypesAPIdb(databaseName, selectedTable,selectedUser);
+  //            } else {
+  //                             // Existing external fetch
+  //               const allColsWithTypes = await fetchTableColumnsWithTypesAPI(databaseName, selectedTable);
+  //             }
+  //         const allCols = Object.keys(allColsWithTypes);
+  //         console.log("allCols",allCols)
+  //         setAllColumns(allCols);
+  //         setColumnTypes(allColsWithTypes);
+
+  //         // Fetch date-specific columns
+  //         // const dateCols = await fetchDateColumnsAPIdb(databaseName, selectedTable,selectedUser);
+  //         if (selectedUser === 'local') {
+  //                             // Fetch table names for local DB
+  //               const dateCols = await fetchDateColumnsAPIdb(databaseName, selectedTable,selectedUser);
+  //            } else {
+  //                             // Existing external fetch
+  //               const dateCols = await fetchDateColumnsAPI(databaseName, selectedTable);
+  //             }
+  //         setDateColumns(dateCols);
+
+  //         // Auto-expand relevant sections if data exists
+  //         if (dateCols.length > 0) {
+  //           setIsDateFilterExpanded(true);
+  //         }
+  //         if (allCols.length > 0) {
+  //           setIsColumnFilterExpanded(true);
+  //           setIsColumnConditionsExpanded(true);
+  //         }
+  //       } catch (error) {
+  //         console.error('Error fetching columns:', error);
+  //         setDateColumns([]);
+  //         setAllColumns([]);
+  //         setColumnTypes({});
+  //       }
+  //     };
+  //     fetchColumns();
+  //   }
+  // }, [selectedTable, selectedUser, databaseName]);
+  useEffect(() => {
+  if (selectedUser && selectedTable) {
+    const fetchColumns = async () => {
+      try {
+        let allColsWithTypes;
+        if (selectedUser === 'local') {
+          // Fetch columns with types for local DB
+          allColsWithTypes = await fetchTableColumnsWithTypesAPI(databaseName, selectedTable);
           } else {
-            setSelectedTable(''); // Clear selected table if not found
-          }
-        } catch (error) {
-          console.error('Error fetching table names:', error);
-          setTableNames([]);
-        } finally {
-          setIsLoading(false);
+          // External fetch
+           allColsWithTypes = await fetchTableColumnsWithTypesAPIdb(databaseName, selectedTable, selectedUser);
         }
-      };
-      fetchTables();
-    } else {
-      setTableNames([]);
-      setSelectedTable('');
-      setTableDetails(null);
-      resetFilters();
-    }
-  }, [databaseName, selectedUser]);
 
-  // Fetch columns and column types when table is selected
-  useEffect(() => {
-    if (selectedUser && selectedTable) {
-      const fetchColumns = async () => {
-        try {
-          // Fetch all columns with their data types
-          const allColsWithTypes = await fetchTableColumnsWithTypesAPIdb(databaseName, selectedTable,selectedUser);
-          const allCols = Object.keys(allColsWithTypes);
-          console.log("allCols",allCols)
-          setAllColumns(allCols);
-          setColumnTypes(allColsWithTypes);
+        const allCols = Object.keys(allColsWithTypes);
+        console.log("allCols", allCols);
+        setAllColumns(allCols);
+        setColumnTypes(allColsWithTypes);
 
-          // Fetch date-specific columns
-          const dateCols = await fetchDateColumnsAPIdb(databaseName, selectedTable,selectedUser);
-          setDateColumns(dateCols);
-
-          // Auto-expand relevant sections if data exists
-          if (dateCols.length > 0) {
-            setIsDateFilterExpanded(true);
-          }
-          if (allCols.length > 0) {
-            setIsColumnFilterExpanded(true);
-            setIsColumnConditionsExpanded(true);
-          }
-        } catch (error) {
-          console.error('Error fetching columns:', error);
-          setDateColumns([]);
-          setAllColumns([]);
-          setColumnTypes({});
+        let dateCols;
+        if (selectedUser === 'local') {
+          // Fetch date columns for local DB
+          dateCols = await fetchDateColumnsAPI(databaseName, selectedTable);
+        } else {
+          // External fetch
+          dateCols = await fetchDateColumnsAPIdb(databaseName, selectedTable, selectedUser); 
         }
-      };
-      fetchColumns();
-    }
-  }, [selectedTable, selectedUser, databaseName]);
+        setDateColumns(dateCols);
+
+        // Auto-expand relevant sections if data exists
+        if (dateCols.length > 0) {
+          setIsDateFilterExpanded(true);
+        }
+        if (allCols.length > 0) {
+          setIsColumnFilterExpanded(true);
+          setIsColumnConditionsExpanded(true);
+        }
+      } catch (error) {
+        console.error('Error fetching columns:', error);
+        setDateColumns([]);
+        setAllColumns([]);
+        setColumnTypes({});
+      }
+    };
+    fetchColumns();
+  }
+}, [selectedTable, selectedUser, databaseName]);
+
 
   // Fetch table data whenever filters change
   useEffect(() => {
@@ -267,63 +414,138 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
     enableColumnConditions,
   ]);
 
-  // Main function to fetch table data with all applied filters
+  // // Main function to fetch table data with all applied filters
+  // const fetchTableDetailsWithFilter = async () => {
+  //   setIsLoading(true);
+  //   try {
+  //     // Prepare date filter parameters
+  //     const dateFilterParams =
+  //       enableDateFilter && selectedDateColumn && startDate && endDate
+  //         ? {
+  //             dateColumn: selectedDateColumn,
+  //             startDate: startDate,
+  //             endDate: endDate,
+  //           }
+  //         : null;
+
+  //     // Prepare column selection
+  //     const columnsToFetch = enableColumnFilter && selectedColumns.length > 0 ? selectedColumns : null;
+
+  //     // Prepare column conditions (only valid ones)
+  //     const conditionsToApply =
+  //       enableColumnConditions && columnConditions.length > 0
+  //         ? columnConditions.filter(
+  //             (condition) =>
+  //               condition.column &&
+  //               condition.operator &&
+  //               (condition.operator === 'IS NULL' ||
+  //                 condition.operator === 'IS NOT NULL' ||
+  //                 condition.value ||
+  //                 (condition.operator === 'BETWEEN' && condition.value && condition.value2))
+  //           )
+  //         : null;
+
+  //     console.log('=== FRONTEND FILTER DEBUG ===');
+  //     console.log('Date filter params:', dateFilterParams);
+  //     console.log('Columns to fetch:', columnsToFetch);
+  //     console.log('Raw column conditions:', columnConditions);
+  //     console.log('Filtered conditions to apply:', conditionsToApply);
+  //     console.log('Enable column conditions:', enableColumnConditions);
+  //     console.log('================================');
+
+  //     const data = await fetchTableDetailsFromExternalDB(
+  //       selectedTable,
+  //       databaseName,
+  //       selectedUser, // Pass selectedUser to the API
+  //       dateFilterParams,
+  //       columnsToFetch,
+  //       conditionsToApply
+  //     );
+
+  //     console.log('Received data from API:', data?.length || 0, 'rows');
+  //     setTableDetails(data);
+  //   } catch (error) {
+  //     console.error('Error fetching table details:', error);
+  //     setTableDetails(null); // Clear table details on error
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
   const fetchTableDetailsWithFilter = async () => {
-    setIsLoading(true);
-    try {
-      // Prepare date filter parameters
-      const dateFilterParams =
-        enableDateFilter && selectedDateColumn && startDate && endDate
-          ? {
-              dateColumn: selectedDateColumn,
-              startDate: startDate,
-              endDate: endDate,
-            }
-          : null;
+  setIsLoading(true);
+  try {
+    // Prepare date filter parameters if enabled and all required fields are set
+    const dateFilterParams =
+      enableDateFilter && selectedDateColumn && startDate && endDate
+        ? {
+            dateColumn: selectedDateColumn,
+            startDate: startDate,
+            endDate: endDate,
+          }
+        : null;
 
-      // Prepare column selection
-      const columnsToFetch = enableColumnFilter && selectedColumns.length > 0 ? selectedColumns : null;
+    // Prepare columns to fetch if column filter is enabled and some columns are selected
+    const columnsToFetch =
+      enableColumnFilter && selectedColumns.length > 0 ? selectedColumns : null;
 
-      // Prepare column conditions (only valid ones)
-      const conditionsToApply =
-        enableColumnConditions && columnConditions.length > 0
-          ? columnConditions.filter(
-              (condition) =>
-                condition.column &&
-                condition.operator &&
-                (condition.operator === 'IS NULL' ||
-                  condition.operator === 'IS NOT NULL' ||
-                  condition.value ||
-                  (condition.operator === 'BETWEEN' && condition.value && condition.value2))
-            )
-          : null;
+    // Prepare valid column conditions if enabled and conditions exist
+    const conditionsToApply =
+      enableColumnConditions && columnConditions.length > 0
+        ? columnConditions.filter(
+            (condition) =>
+              condition.column &&
+              condition.operator &&
+              (condition.operator === 'IS NULL' ||
+                condition.operator === 'IS NOT NULL' ||
+                condition.value ||
+                (condition.operator === 'BETWEEN' && condition.value && condition.value2))
+          )
+        : null;
 
-      console.log('=== FRONTEND FILTER DEBUG ===');
-      console.log('Date filter params:', dateFilterParams);
-      console.log('Columns to fetch:', columnsToFetch);
-      console.log('Raw column conditions:', columnConditions);
-      console.log('Filtered conditions to apply:', conditionsToApply);
-      console.log('Enable column conditions:', enableColumnConditions);
-      console.log('================================');
+    // Debug logs for filters
+    console.log('=== FRONTEND FILTER DEBUG ===');
+    console.log('Date filter params:', dateFilterParams);
+    console.log('Columns to fetch:', columnsToFetch);
+    console.log('Raw column conditions:', columnConditions);
+    console.log('Filtered conditions to apply:', conditionsToApply);
+    console.log('Enable column conditions:', enableColumnConditions);
+    console.log('================================');
 
-      const data = await fetchTableDetailsFromExternalDB(
-        selectedTable,
+    // Fetch data depending on whether the user is local or external
+    let data;
+    if (selectedUser === 'local') {
+      data = await fetchTableDetailsAPI(
         databaseName,
-        selectedUser, // Pass selectedUser to the API
+        selectedTable,
         dateFilterParams,
         columnsToFetch,
         conditionsToApply
       );
-
-      console.log('Received data from API:', data?.length || 0, 'rows');
-      setTableDetails(data);
-    } catch (error) {
-      console.error('Error fetching table details:', error);
-      setTableDetails(null); // Clear table details on error
-    } finally {
-      setIsLoading(false);
+    } else {
+      data = await fetchTableDetailsFromExternalDB(
+        selectedTable,
+        databaseName,
+        selectedUser,
+        dateFilterParams,
+        columnsToFetch,
+        conditionsToApply
+      );
     }
-  };
+
+    console.log('Received data from API:', data?.length || 0, 'rows');
+    setTableDetails(data);
+  } catch (error) {
+    console.error('Error fetching table details:', error);
+    setTableDetails(null); // Clear table details on error
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+    const handleCloseDialog = () => {
+  setDialogOpen(false);
+};
 
   // Debounced search handler for table names
   const handleSearchDebounced = debounce((query) => {
@@ -389,6 +611,7 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
       setLoadSuccess(true);
       dispatch(resetChartState());
       dispatch(resetChartType());
+      dispatch(resetToolTip());
 
       // Clear any remaining chart-related data
       sessionStorage.removeItem('xAxis');
@@ -500,7 +723,7 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
       
   dispatch(resetChartState());
   dispatch(resetChartType());
-
+  dispatch(resetToolTip());
   // ✅ Remove chart selections
   sessionStorage.removeItem('xAxis');
   sessionStorage.removeItem('yAxis');
@@ -609,9 +832,9 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
     >
       <HomePage />
 
-      <Container maxWidth="xl" sx={{ mt: 1 }}>
+      <Container maxWidth="l" sx={{ mt: 1 }}>
         {/* Compact Header */}
-        <PageHeader theamColor={appbarcolor} lighterColor={lighterColor} />
+        <PageHeader theamColor={appbarcolor} lighterColor={lighterColor}  sx={{ width: '120%' }}/>
 
         {/* Main Content in Two Columns */}
         <Grid container spacing={2}>
@@ -678,7 +901,26 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
     
   })
 )}
-
+ <MenuItem
+    value="local"
+    sx={{
+      py: 1,
+      backgroundColor: selectedUser === 'local' ? appbarcolor + '22' : 'inherit',
+      color: selectedUser === 'local' ? appbarcolor : 'inherit',
+      '&:hover': {
+        backgroundColor: selectedUser === 'local' ? appbarcolor + '33' : appbarcolor + '11',
+      },
+      '&.Mui-selected': {
+        backgroundColor: appbarcolor + '22',
+      },
+      '&.Mui-selected:hover': {
+        backgroundColor: appbarcolor + '33',
+      },
+      fontFamily: fontStyle,
+    }}
+  >
+    Local Database
+  </MenuItem>
                 </Select>
               </FormControl>
 
@@ -781,7 +1023,7 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
                   </Button>
                   )}
                   {/* Create View Button */}
-                  {!(enableDateFilter || enableColumnFilter || enableColumnConditions) && (
+                  {(enableDateFilter || enableColumnFilter || enableColumnConditions) && (
  
                   <Button
                     variant="outlined"
@@ -856,7 +1098,7 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
       />
 
       {/* Success Notifications */}
-      <Snackbar
+      {/* <Snackbar
         open={loadSuccess || viewCreated}
         autoHideDuration={4000}
         onClose={handleCloseSnackbar}
@@ -885,7 +1127,15 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
                 isColumnConditionsComplete ? ` and ${columnConditions.filter((c) => c.column && c.operator).length} condition(s)` : ''
               }`}
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
+       <CustomAlertDialog
+  open={dialogOpen}
+  onClose={handleCloseDialog}
+  title={dialogTitle}
+  message={dialogMessage}
+  type={dialogType}
+/>
+
     </Box>
   );
 };

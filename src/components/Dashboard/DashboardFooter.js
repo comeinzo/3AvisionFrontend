@@ -4,7 +4,8 @@ import { useSelector } from 'react-redux';
 import { Grid,Box } from '@mui/material';
 import ViewDashboardSidebar from '../../components/EditDashboard/EditDashboardSidebar';
 
-const DashboardFooter = ({ visible }) => {
+const DashboardFooter = ({ visible, onProjectsButtonClick,
+                    showProjectsButton  }) => {
   
 const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
   if (!visible) return null;
@@ -49,7 +50,8 @@ const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976
                   height: '100%',
                 }}
               >
-      <ViewDashboardSidebar />
+      <ViewDashboardSidebar  onProjectsButtonClick={onProjectsButtonClick}
+                    showProjectsButton={showProjectsButton} />
       </Box>
     </Grid>
   );

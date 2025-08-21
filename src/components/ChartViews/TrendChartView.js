@@ -336,121 +336,210 @@ const aggregatedData = useMemo(() => {
     }
   };
 
-  return (
-    <div
-  ref={chartRef}
-  className="chart-container"
-  style={{
-    position: "relative",
-    paddingTop:'0px',
-    width: "100%",
-    height: "100%",
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
+//   return (
+//     <div
+//   ref={chartRef}
+//   className="chart-container"
+//   style={{
+//     position: "relative",
+//     paddingTop:'0px',
+//     width: "100%",
+//     height: "100%",
+//     display: "flex",
+//     justifyContent: "center",
+//     alignItems: "center",
     
-    padding: 0, // Add this to remove any default padding
-    margin: 0,  // Add this to remove any default margin
-  }}
->
-<Grid
-  container
-  spacing={2}
-  sx={{
-    width: chartWidth,
-    height: chartHeight,
-    backgroundColor: areaColor,
-    borderRadius: "4px",
-    overflow: "hidden",
-    padding: 1,
-  }}
->
-  <Grid item xs={12} md={4}>
-    <Card
-      sx={{
-        height: '80%',
-        borderRadius: 3,
-        boxShadow: 3,
-        p: 2,
-        background: areaColor,
-        border: '2px solid',
-        borderColor: resolvedColor
-      }}
-    >
-      <CardContent>
-        <Stack spacing={1}>
-          <Box>
-            <Typography variant="h4" fontWeight="bold" sx={{ color: hexToRGBA(chartColor.replace(/^"(.*)"$/, '$1'), opacity || 1) }}>
-              {getCurrencySymbol()}{latestValue?.toFixed?.(2) ?? '—'}
-            </Typography>
-            <Typography variant="caption" sx={{ mt: 0.5, color: resolvedColor }}>
-              Latest (
-              {aggregatedData.dates?.[aggregatedData.dates.length - 1]
-                ? new Date(aggregatedData.dates[aggregatedData.dates.length - 1]).toLocaleDateString()
-                : '—'}
-              )
-            </Typography>
-            <Typography
-              variant="subtitle1"
-              sx={{
-                color: trend > 0 ? 'green' : trend < 0 ? 'red' : 'gray',
-                fontWeight: 500,
-                mt: 0.5,
-              }}
-            >
-              {trendIndicator} {Math.abs(trend).toFixed(2)} vs previous
-            </Typography>
-            {aggregatedData.values.length >= 2 && (
-              <>
-                <Typography variant="body2" sx={{ mt: 0.5, color: resolvedColor }}>
-                  Prev: {getCurrencySymbol()}{previousValue.toFixed(2)}
-                </Typography>
-                <Typography variant="caption" sx={{ mt: 0.5, color: resolvedColor }}>
-                  (
-                  {aggregatedData.dates?.[aggregatedData.dates.length - 2]
-                    ? new Date(aggregatedData.dates[aggregatedData.dates.length - 2]).toLocaleDateString()
-                    : '—'}
-                  )
-                </Typography>
-              </>
-            )}
-          </Box>
+//     padding: 0, // Add this to remove any default padding
+//     margin: 0,  // Add this to remove any default margin
+//   }}
+// >
+// <Grid
+//   container
+//   spacing={2}
+//   sx={{
+//     width: chartWidth,
+//     height: chartHeight,
+//     backgroundColor: areaColor,
+//     borderRadius: "4px",
+//     overflow: "hidden",
+//     padding: 1,
+//   }}
+// >
+//   <Grid item xs={12} md={4}>
+//     <Card
+//       sx={{
+//         height: '80%',
+//         borderRadius: 3,
+//         boxShadow: 3,
+//         p: 2,
+//         background: areaColor,
+//         border: '2px solid',
+//         borderColor: resolvedColor
+//       }}
+//     >
+//       <CardContent>
+//         <Stack spacing={1}>
+//           <Box>
+//             <Typography variant="h4" fontWeight="bold" sx={{ color: hexToRGBA(chartColor.replace(/^"(.*)"$/, '$1'), opacity || 1) }}>
+//               {getCurrencySymbol()}{latestValue?.toFixed?.(2) ?? '—'}
+//             </Typography>
+//             <Typography variant="caption" sx={{ mt: 0.5, color: resolvedColor }}>
+//               Latest (
+//               {aggregatedData.dates?.[aggregatedData.dates.length - 1]
+//                 ? new Date(aggregatedData.dates[aggregatedData.dates.length - 1]).toLocaleDateString()
+//                 : '—'}
+//               )
+//             </Typography>
+//             <Typography
+//               variant="subtitle1"
+//               sx={{
+//                 color: trend > 0 ? 'green' : trend < 0 ? 'red' : 'gray',
+//                 fontWeight: 500,
+//                 mt: 0.5,
+//               }}
+//             >
+//               {trendIndicator} {Math.abs(trend).toFixed(2)} vs previous
+//             </Typography>
+//             {aggregatedData.values.length >= 2 && (
+//               <>
+//                 <Typography variant="body2" sx={{ mt: 0.5, color: resolvedColor }}>
+//                   Prev: {getCurrencySymbol()}{previousValue.toFixed(2)}
+//                 </Typography>
+//                 <Typography variant="caption" sx={{ mt: 0.5, color: resolvedColor }}>
+//                   (
+//                   {aggregatedData.dates?.[aggregatedData.dates.length - 2]
+//                     ? new Date(aggregatedData.dates[aggregatedData.dates.length - 2]).toLocaleDateString()
+//                     : '—'}
+//                   )
+//                 </Typography>
+//               </>
+//             )}
+//           </Box>
 
-          {selectedPoint && (
-            <Box mt={2}>
-              <Typography variant="body2" color="text.secondary">
-                Selected: <strong>{selectedPoint.date}</strong>
+//           {selectedPoint && (
+//             <Box mt={2}>
+//               <Typography variant="body2" color="text.secondary">
+//                 Selected: <strong>{selectedPoint.date}</strong>
+//               </Typography>
+//               <Typography variant="h6" color="primary">
+//                 {getCurrencySymbol()}{selectedPoint.value.toFixed(2)}
+//               </Typography>
+//             </Box>
+//           )}
+//         </Stack>
+//       </CardContent>
+//     </Card>
+//   </Grid>
+
+//   <Grid item xs={12} md={8}>
+//     <Card  sx={{
+//         height: '80%',
+//         borderRadius: 3,
+//         boxShadow: 3,
+//         p: 2,
+//         background: areaColor,
+//         border: '2px solid',
+//         borderColor: resolvedColor
+//       }}>
+//       <CardContent>
+//         <Chart options={options} series={series} type="line" height={chartHeight - 300} width="100%"/>
+//       </CardContent>
+//     </Card>
+//   </Grid>
+// </Grid>
+
+//     </div>
+    
+//   );
+// };
+
+// export default KPITrendChart;
+return (
+  <Card
+    ref={chartRef}
+    sx={{
+      borderRadius: 3,
+      boxShadow: 3,
+      p: 3,
+      backgroundColor: areaColor,
+      border: '2px solid',
+      borderColor: resolvedColor,
+    }}
+  >
+    <Stack spacing={3}>
+      {/* Chart Heading */}
+      {customHeadings && customHeadings.trim() !== "" && customHeadings.toLowerCase() !== "null" && (
+        <Typography variant="h5" align="center" sx={{ color: headingColor, mb: 2 }}>
+          {customHeadings}
+        </Typography>
+      )}
+
+      <Grid container spacing={2} alignItems="center">
+        {/* KPI Summary */}
+        <Grid item xs={12} md={4}>
+          <Stack spacing={1}>
+            <Box>
+              <Typography
+                variant="h4"
+                fontWeight="bold"
+                sx={{ color: hexToRGBA(chartColor.replace(/^"(.*)"$/, '$1'), opacity || 1) }}
+              >
+                {getCurrencySymbol()}{latestValue?.toFixed?.(2) ?? '—'}
               </Typography>
-              <Typography variant="h6" color="primary">
-                {getCurrencySymbol()}{selectedPoint.value.toFixed(2)}
+              <Typography variant="caption" sx={{ mt: 0.5, color: resolvedColor }}>
+                Latest (
+                {aggregatedData.dates?.[aggregatedData.dates.length - 1]
+                  ? new Date(aggregatedData.dates[aggregatedData.dates.length - 1]).toLocaleDateString()
+                  : '—'}
+                )
               </Typography>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  color: trend > 0 ? 'green' : trend < 0 ? 'red' : 'gray',
+                  fontWeight: 500,
+                  mt: 0.5,
+                }}
+              >
+                {trendIndicator} {Math.abs(trend).toFixed(2)} vs previous
+              </Typography>
+              {aggregatedData.values.length >= 2 && (
+                <>
+                  <Typography variant="body2" sx={{ mt: 0.5, color: resolvedColor }}>
+                    Prev: {getCurrencySymbol()}{previousValue.toFixed(2)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ mt: 0.5, color: resolvedColor }}>
+                    (
+                    {aggregatedData.dates?.[aggregatedData.dates.length - 2]
+                      ? new Date(aggregatedData.dates[aggregatedData.dates.length - 2]).toLocaleDateString()
+                      : '—'}
+                    )
+                  </Typography>
+                </>
+              )}
             </Box>
-          )}
-        </Stack>
-      </CardContent>
-    </Card>
-  </Grid>
 
-  <Grid item xs={12} md={8}>
-    <Card  sx={{
-        height: '80%',
-        borderRadius: 3,
-        boxShadow: 3,
-        p: 2,
-        background: areaColor,
-        border: '2px solid',
-        borderColor: resolvedColor
-      }}>
-      <CardContent>
-        <Chart options={options} series={series} type="line" height={chartHeight - 300} width="100%"/>
-      </CardContent>
-    </Card>
-  </Grid>
-</Grid>
+            {selectedPoint && (
+              <Box mt={2}>
+                <Typography variant="body2" color="text.secondary">
+                  Selected: <strong>{selectedPoint.date}</strong>
+                </Typography>
+                <Typography variant="h6" color="primary">
+                  {getCurrencySymbol()}{selectedPoint.value.toFixed(2)}
+                </Typography>
+              </Box>
+            )}
+          </Stack>
+        </Grid>
 
-    </div>
-    
-  );
+        {/* Chart */}
+        <Grid item xs={12} md={8}>
+          <Chart options={options} series={series} type="line" height={chartHeight-50} width="100%" />
+        </Grid>
+      </Grid>
+    </Stack>
+  </Card>
+);
 };
 
 export default KPITrendChart;

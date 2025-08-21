@@ -26,6 +26,7 @@ const BarChart = ({ categories = [], values = [], aggregation }) => {
   const xFontSize = useSelector((state) => state.toolTip.fontSizeX || "12");
   const fontStyle = useSelector((state) => state.toolTip.fontStyle || "Arial");
   const yFontSize = useSelector((state) => state.toolTip.fontSizeY || "12");
+ const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
 
 const [showResetButton, setShowResetButton] = useState(false);
   const headingColor = useSelector((state) => state.toolTip.headingColor);
@@ -143,19 +144,6 @@ const areaColorFromEditChartSlice = useSelector((state) => state.chartdata.chart
 console.log("areaColorFromEditChartSlice",areaColorFromEditChartSlice)
 
 
-// let cleanAreaColorRaw = location.pathname === "/Edit_Chart"
-//   ? areaColorFromEditChartSlice
-//   : chartColorMapping;
-// console.log("chartColorMapping",cleanAreaColorRaw)
-// // Parse if it's a stringified object
-// if (typeof cleanAreaColorRaw === "string") {
-//   try {
-//     cleanAreaColorRaw = JSON.parse(cleanAreaColorRaw);
-//   } catch (e) {
-//     console.error("Failed to parse areaColor JSON:", cleanAreaColorRaw);
-//     cleanAreaColorRaw = {}; // fallback
-//   }
-// }
 let cleanAreaColorRaw = location.pathname === "/Edit_Chart"
   ? areaColorFromEditChartSlice
   : chartColorMapping;
@@ -202,7 +190,7 @@ const [barColor, setBarColorState] = useState(() =>
 );
 
 
-
+  const labelTextColors = barColor.map(color => getContrastColor(color));
   console.log("barColor", barColor);
  
 
@@ -626,8 +614,9 @@ if (serialized.length < 4000000) {  // ~4MB threshold
           pan: false,
           reset: true,
         },
-        offsetX: -130,
-        offsetY: -0,
+         offsetX: -100,
+        offsetY: 0,
+        
       }
     },
     colors: barColor,
@@ -666,7 +655,8 @@ if (serialized.length < 4000000) {  // ~4MB threshold
       position: legendPosition === "hide" ? "right" : legendPosition,
       horizontalAlign: legendPosition === "top" || legendPosition === "bottom" ? 'center' : 'left',
       verticalAlign: legendPosition === "top" || legendPosition === "bottom" ? 'middle' : 'middle', // Set to middle for top/bottom as well
-      offsetY: legendPosition === "top" || legendPosition === "bottom" ? 0 : 0, // Keep 0 for top/bottom, you might need to adjust this based on your exact layout
+      // offsetY: legendPosition === "top" || legendPosition === "bottom" ? 0 : 0, // Keep 0 for top/bottom, you might need to adjust this based on your exact layout
+       offsetY: legendPosition === "top" ? 20 : 0,
       fontSize: '12px',
       fontFamily: fontStyle,
       fontWeight: 400,
@@ -693,7 +683,9 @@ if (serialized.length < 4000000) {  // ~4MB threshold
       type: "category",
       categories: sortedCategories,
       tickAmount: Math.min(sortedCategories.length, 20),
-      title: { text: xAxis },
+      title: { text: xAxis , style: {
+          color: getContrastColor(areaColor || '#ffffff'), // Y-axis title color
+        }},
       labels: {
         offsetX: 0,
         rotate: -45,
@@ -716,7 +708,9 @@ if (serialized.length < 4000000) {  // ~4MB threshold
       tickPlacement: 'on',
     },
     yaxis: {
-      title: { text: yAxis },
+      title: { text: yAxis , style: {
+          color: getContrastColor(areaColor || '#ffffff'), // Y-axis title color
+        }},
       labels: {
         style: {
           fontFamily: fontStyle,
@@ -756,11 +750,11 @@ if (serialized.length < 4000000) {  // ~4MB threshold
       },
     },
     dataLabels: {
-      enabled: false,
+      enabled: showDataLabels,
       offsetY: -2,
       style: {
         fontSize: '12px',
-        colors: ["#304758"]
+        color:labelTextColors, // Y-axis title color
       }
     },
     grid: {
@@ -886,7 +880,7 @@ console.log("  areaColor:", areaColor);
 
           <div
             style={{
-              width: dynamicWidth,
+              width: '100%',
               height: dynamicHeight,
               maxWidth: '100%',
               overflow: 'hidden',

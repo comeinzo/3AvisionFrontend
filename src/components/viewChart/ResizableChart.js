@@ -36,7 +36,9 @@ import Donut from '../ChartViews/donutView';
 import IndiaMap from '../ChartViews/IndiaMapChartView.js';
 import BubbleChart from '../ChartViews/bubbleChartView.js';
 import TableChart from '../ChartViews/tableChartView.js';
+import StackedBarChart from '../ChartViews/stackekBarView.js';
 import TrendChart from '../ChartViews/TrendChartView.js';
+import MeterGaugeChart from '../ChartViews/meterGaugeChartView.js';
 const CONTEXT_MENU_OPEN_KEY = 'chartContextMenuOpen';
 
 const ResizableChart = ({ data, context, onRemove, updateChartDetails, onRemovePosition, width, height, isChartView }) => {
@@ -280,78 +282,151 @@ const handleOpacityChange = useCallback(
   ]);
 
   
+  // const sendChartDetailsToBackend = useCallback(async () => {
+  //   try {
+  //     const response = await sendChartDetails(data, selectedUser);
+      
+  //     // Handle tree hierarchy data
+  //     if (data[5] === 'treeHierarchy') {
+  //       const { categories, values, x_axis } = response;
+  //       setHierarchyData(categories);
+  //       setHierarchy(x_axis);
+  //       setHierarchyValues(values);
+  //     }
+      
+  //     // Handle AI chart data
+  //     if (data[5] === 'sampleAitestChart') {
+  //       setAiChartData(response['histogram_details']);
+  //     }
+
+  //     if (data[5] === 'AiCharts') {
+  //       setAiMLChartData(response['histogram_details']);
+  //     }
+      
+  //     // Extract common chart data
+  //     const { categories, values, series1, series2 } = response;
+
+  //     // Dispatch chart data to store
+  //     if (categories) {
+  //       if (values && categories.length === values.length) {
+  //         const chartDataElement = {
+  //           categories,
+  //           values,
+  //           x_axis: data[2],
+  //           chart_type: data[5],
+  //           chart_color: data[6],
+  //           chart_id: data[0],
+  //           y_axis: data[3],
+  //           tableName: data[1],
+  //           aggregate: data[4],
+  //           filter_options: data[9],
+  //           databaseName: data[10],
+  //           areaColor: data[19],
+  //           optimizeData: data[21],
+  //           calculationData:data[20],
+  //           selectedFrequency:data[22],
+  //           opacity: data[23] !== undefined ? data[23] : 1,
+  //         };
+  //         dispatch(addChartData(chartDataElement));
+  //       } else if (series1 && series2 && categories.length === series1.length && categories.length === series2.length) {
+  //         const chartDataElement = {
+  //           categories,
+  //           series1,
+  //           series2,
+  //           x_axis: data[2],
+  //           chart_type: data[5],
+  //           chart_id: data[0],
+  //           y_axis: data[3],
+  //           tableName: data[1],
+  //           aggregate: data[4],
+  //           filter_options: data[9],
+  //           databaseName: data[10],
+  //           areaColor: data[19],
+  //           optimizeData: data[21],
+  //           calculationData:data[20],
+  //           // opacity: data[23] !== undefined ? data[23] : 1,
+  //           selectedFrequency:data[22],
+  //           opacity: data[23] !== undefined ? data[23] : 1,
+  //         };
+  //         dispatch(addChartData(chartDataElement));
+  //       }
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending chart details to backend:', error);
+  //   }
+  // }, [data, selectedUser, dispatch]);
   const sendChartDetailsToBackend = useCallback(async () => {
-    try {
-      const response = await sendChartDetails(data, selectedUser);
-      
-      // Handle tree hierarchy data
-      if (data[5] === 'treeHierarchy') {
-        const { categories, values, x_axis } = response;
-        setHierarchyData(categories);
-        setHierarchy(x_axis);
-        setHierarchyValues(values);
-      }
-      
-      // Handle AI chart data
-      if (data[5] === 'sampleAitestChart') {
-        setAiChartData(response['histogram_details']);
-      }
+    try {
+      const response = await sendChartDetails(data, selectedUser);
+      
+      // Handle tree hierarchy data
+      if (data[5] === 'treeHierarchy') {
+        const { categories, values, x_axis } = response;
+        setHierarchyData(categories);
+        setHierarchy(x_axis);
+        setHierarchyValues(values);
+      }
+      
+      // Handle AI chart data
+      if (data[5] === 'sampleAitestChart') {
+        setAiChartData(response['histogram_details']);
+      }
 
-      if (data[5] === 'AiCharts') {
-        setAiMLChartData(response['histogram_details']);
-      }
-      
-      // Extract common chart data
-      const { categories, values, series1, series2 } = response;
+      if (data[5] === 'AiCharts') {
+        setAiMLChartData(response['histogram_details']);
+      }
+      
+      // Extract common chart data
+      const { categories, values, series1, series2 } = response;
 
-      // Dispatch chart data to store
-      if (categories) {
-        if (values && categories.length === values.length) {
-          const chartDataElement = {
-            categories,
-            values,
-            x_axis: data[2],
-            chart_type: data[5],
-            chart_color: data[6],
-            chart_id: data[0],
-            y_axis: data[3],
-            tableName: data[1],
-            aggregate: data[4],
-            filter_options: data[9],
-            databaseName: data[10],
-            areaColor: data[19],
-            optimizeData: data[21],
-            calculationData:data[20],
-            // opacity: data[22] !== undefined ? data[22] : 1,
-            selectedFrequency:data[22]
-          };
-          dispatch(addChartData(chartDataElement));
-        } else if (series1 && series2 && categories.length === series1.length && categories.length === series2.length) {
-          const chartDataElement = {
-            categories,
-            series1,
-            series2,
-            x_axis: data[2],
-            chart_type: data[5],
-            chart_id: data[0],
-            y_axis: data[3],
-            tableName: data[1],
-            aggregate: data[4],
-            filter_options: data[9],
-            databaseName: data[10],
-            areaColor: data[19],
-            optimizeData: data[21],
-            calculationData:data[20],
-            // opacity: data[22] !== undefined ? data[22] : 1,
-            selectedFrequency:data[22]
-          };
-          dispatch(addChartData(chartDataElement));
-        }
-      }
-    } catch (error) {
-      console.error('Error sending chart details to backend:', error);
-    }
-  }, [data, selectedUser, dispatch]);
+      // Dispatch chart data to store
+      if (categories) {
+        if (values && categories.length === values.length) {
+          const chartDataElement = {
+            categories,
+            values,
+            x_axis: data[2],
+            chart_type: data[5],
+            chart_color: data[6],
+            chart_id: data[0],
+            y_axis: data[3],
+            tableName: data[1],
+            aggregate: data[4],
+            filter_options: data[9],
+            databaseName: data[10],
+            areaColor: data[19],
+            optimizeData: data[21],
+            calculationData:data[20],
+            selectedFrequency:data[22],
+            opacity: data[23] !== undefined ? data[23] : 1,
+          };
+          dispatch(addChartData(chartDataElement));
+        } else if (series1 && series2 && categories.length === series1.length && categories.length === series2.length) {
+          const chartDataElement = {
+            categories,
+            series1,
+            series2,
+            x_axis: data[2],
+            chart_type: data[5],
+            chart_id: data[0],
+            y_axis: data[3],
+            tableName: data[1],
+            aggregate: data[4],
+            filter_options: data[9],
+            databaseName: data[10],
+            areaColor: data[19],
+            optimizeData: data[21],
+            calculationData:data[20],
+            selectedFrequency:data[22],
+            opacity: data[23] !== undefined ? data[23] : 1,
+          };
+          dispatch(addChartData(chartDataElement));
+        }
+      }
+    } catch (error) {
+      console.error('Error sending chart details to backend:', error);
+    }
+  }, [data, selectedUser, dispatch]);
 
   // Initial setup
   useEffect(() => {
@@ -408,6 +483,7 @@ const handleOpacityChange = useCallback(
           return <BarChart 
             categories={chartDataFromStore.categories} 
             values={chartDataFromStore.values.map(value => parseFloat(value))} 
+            
             {...commonChartProps} 
           />;
         }
@@ -646,6 +722,17 @@ const handleOpacityChange = useCallback(
             {...commonChartProps}
           />
         );
+         case 'meterGauge':
+        return (
+          <MeterGaugeChart
+            heading={heading}
+            result={result}
+            fetchedData={fetchedData}
+            minWidth={minWidth}
+            minHeight={minHeight}
+            {...commonChartProps}
+          />
+        );
       case 'Butterfly':
         if (
           chartDataFromStore?.categories?.length > 0 &&
@@ -670,7 +757,21 @@ const handleOpacityChange = useCallback(
             {...commonChartProps} 
           />;
         }
+        case 'stackedbar':
+         if (
+          chartDataFromStore?.categories?.length > 0 &&
+          chartDataFromStore?.series1?.length > 0 &&
+          chartDataFromStore?.series2?.length > 0
+        ) {
+          return <StackedBarChart
+            categories={chartDataFromStore.categories}
+            series1={chartDataFromStore.series1}
+            series2={chartDataFromStore.series2.map(value => parseFloat(value))}
+            {...commonChartProps}
+          />;
+        }
         break;
+           
       default:
         return <div></div>;
     }

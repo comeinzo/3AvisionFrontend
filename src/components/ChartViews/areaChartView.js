@@ -181,6 +181,7 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
             labels: {
                 style: {
                     fontSize:`${xFontSize}px`,
+                     fontFamily:fontStyle,
                     fontWeight: 400,
                     colors: Array(10).fill(resolvedcategoryColor),
                 },
@@ -203,6 +204,7 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
             labels: {
                 style: {
                     fontSize:`${yFontSize}px`,
+                     fontFamily:fontStyle,
                     fontWeight: 400,
                     // colors: valueColor,
                     colors: Array(10).fill(resolvedColor),

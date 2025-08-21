@@ -21,6 +21,7 @@ import axios from 'axios';
 import HomePage from '../HomePage';
 import { API_URL } from '../../utils/api';
 
+ import CustomAlertDialog from '../../components/DashboardActions/CustomAlertDialog'; // Import the new component
 // --- Styled Components for the new layout ---
 const RootContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -158,6 +159,12 @@ export default function ExternalDbConnection() {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarSeverity, setSnackbarSeverity] = useState('info');
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+      const [dialogTitle, setDialogTitle] = useState('');
+      const [dialogMessage, setDialogMessage] = useState('');
+      const [dialogType, setDialogType] = useState('info'); // 'success' | 'error' | 'info' | 'warning'
+  
+      
   const [canSubmit, setCanSubmit] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -167,16 +174,28 @@ export default function ExternalDbConnection() {
   const navigate = useNavigate();
 const fontStyle = useSelector((state) => state.barColor.fontStyle);
   // Disable browser's back button
+  // useEffect(() => {
+  //   const disableBackButton = () => {
+  //     navigate('/', { replace: true });
+  //   };
+
+  //   window.history.pushState(null, '', window.location.href);
+  //   window.addEventListener('popstate', disableBackButton);
+
+  //   return () => {
+  //     window.removeEventListener('popstate', disableBackButton);
+  //   };
+  // }, [navigate]);
   useEffect(() => {
-    const disableBackButton = () => {
-      navigate('/', { replace: true });
+    const handlePopState = () => {
+      navigate('/data-source-page');
     };
-
-    window.history.pushState(null, '', window.location.href);
-    window.addEventListener('popstate', disableBackButton);
-
+  
+    window.addEventListener('popstate', handlePopState);
+  
+    // Cleanup
     return () => {
-      window.removeEventListener('popstate', disableBackButton);
+      window.removeEventListener('popstate', handlePopState);
     };
   }, [navigate]);
 
@@ -193,12 +212,20 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
         return false;
     }
   };
+      const handleDialogClose = () => {
+    setDialogOpen(false);
+};
+
 
   const handleNext = () => {
     if (!validateStep(activeStep)) {
-      setTestMessage('Please complete the current step correctly before proceeding.');
-      setSnackbarSeverity('warning');
-      setOpenSnackbar(true);
+      // setTestMessage('Please complete the current step correctly before proceeding.');
+      // setSnackbarSeverity('warning');
+      // setOpenSnackbar(true);
+       setDialogTitle("warning");
+    setDialogMessage('Please complete the current step correctly before proceeding.');
+    setDialogType("info");
+    setDialogOpen(true);
       return;
     }
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
@@ -210,9 +237,13 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
 
   const handleTestConnection = async () => {
     if (!dbType || !dbUsername || !dbPassword || !port || !dbName) {
-      setTestMessage('Please fill in all connection fields before testing.');
-      setSnackbarSeverity('warning');
-      setOpenSnackbar(true);
+      // setTestMessage('Please fill in all connection fields before testing.');
+      // setSnackbarSeverity('warning');
+      // setOpenSnackbar(true);
+          setDialogTitle("warning");
+    setDialogMessage('Please fill in all connection fields before testing.');
+    setDialogType("info");
+    setDialogOpen(true);
       return;
     }
 
@@ -220,6 +251,10 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
     setTestMessage('Testing connection...');
     setSnackbarSeverity('info');
     setOpenSnackbar(true);
+    //  setDialogTitle("warning");
+    // setDialogMessage('Testing connection...');
+    // setDialogType("info");
+    // setDialogOpen(true);
     setCanSubmit(false); // Reset submit capability before testing
 
     try {
@@ -233,17 +268,31 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
       });
 
       if (response.data.success) {
-        setTestMessage(`Connection successful! Found tables: ${response.data.tables.join(', ')}`);
-        setSnackbarSeverity('success');
-        setCanSubmit(true);
+        // setTestMessage(`Connection successful! Found tables: ${response.data.tables.join(', ')}`);
+        // setSnackbarSeverity('success');
+          setDialogTitle("success");
+         setDialogMessage(`Connection successful! Found tables: ${response.data.tables.join(', ')}`);
+    setDialogType("success");
+    setDialogOpen(true);
+    // setCanSubmit(true); // Reset submit capability before testing
+
+         setCanSubmit(true);
       } else {
-        setTestMessage(`Connection failed: ${response.data.error}`);
-        setSnackbarSeverity('error');
+        // setTestMessage(`Connection failed: ${response.data.error}`);
+        // setSnackbarSeverity('error');
+         setDialogTitle("error");
+         setDialogMessage(`Connection failed: ${response.data.error}`);
+    setDialogType("error");
+    setDialogOpen(true);
         setCanSubmit(false);
       }
     } catch (error) {
-      setTestMessage(`Error: ${error.response?.data?.details || error.message}. Check credentials/network.`);
-      setSnackbarSeverity('error');
+      // setTestMessage(`Error: ${error.response?.data?.details || error.message}. Check credentials/network.`);
+      // setSnackbarSeverity('error');
+       setDialogTitle("error");
+         setDialogMessage(`Error: ${error.response?.data?.details || error.message}. Check credentials/network.`);
+    setDialogType("error");
+    setDialogOpen(true);
       setCanSubmit(false);
     } finally {
       setIsTesting(false);
@@ -252,19 +301,31 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
 
   const handleSubmit = async () => {
     if (!canSubmit) {
-      setTestMessage('Connection must be successfully tested before saving.');
-      setSnackbarSeverity('warning');
-      setOpenSnackbar(true);
+      // setTestMessage('Connection must be successfully tested before saving.');
+       setDialogTitle("warning");
+         setDialogMessage('Connection must be successfully tested before saving.');
+    setDialogType("info");
+    setDialogOpen(true);
+      // setSnackbarSeverity('warning');
+      // setOpenSnackbar(true);
       return;
     }
     if (!saveName.trim()) {
-      setTestMessage('Please enter a name for this connection.');
-      setSnackbarSeverity('warning');
-      setOpenSnackbar(true);
+      // setTestMessage('Please enter a name for this connection.');
+      // setSnackbarSeverity('warning');
+      // setOpenSnackbar(true);
+        setDialogTitle("warning");
+         setDialogMessage('Please enter a name for this connection.');
+    setDialogType("info");
+    setDialogOpen(true);
       return;
     }
 
     setIsSaving(true);
+    //  setDialogTitle("warning");
+    //      setDialogMessage('Saving connection details...');
+    // setDialogType("info");
+    // setDialogOpen(true);
     setTestMessage('Saving connection details...');
     setSnackbarSeverity('info');
     setOpenSnackbar(true);
@@ -643,22 +704,22 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
                   >
                     {isTesting ? 'Testing...' : 'Test Connection'}
                   </Button>
-                  {testMessage && (
+                  {dialogMessage && (
                     <Typography
                       variant="body2"
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        color: snackbarSeverity === 'success' ? 'success.main' : 'error.main',
+                        color: dialogType === 'success' ? 'success.main' : 'error.main',
                         mt: 1
                       }}
                     >
-                      {snackbarSeverity === 'success' ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
-                      {testMessage}
+                      {dialogType === 'success' ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
+                      {dialogMessage}
                     </Typography>
                   )}
-                  {!testMessage && (
+                  {!dialogMessage && (
                     <Typography variant="body2" color="text.secondary" sx={{fontFamily:fontStyle}}>
                       Test results will appear here.
                     </Typography>
@@ -807,6 +868,14 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
           {testMessage}
         </Alert>
       </Snackbar>
+      
+         <CustomAlertDialog
+                   open={dialogOpen}
+                   onClose={handleDialogClose}
+                   title={dialogTitle}
+                   message={dialogMessage}
+                   type={dialogType}
+                 />
     </RootContainer>
   );
 }

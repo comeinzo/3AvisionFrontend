@@ -5,9 +5,12 @@ import { updateSelectedCategory, setChartStatus, updateChartData, updateSelected
 import { useDispatch, useSelector } from 'react-redux';
 import FilterAltOffIcon from '@mui/icons-material/FilterAltOff';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
-import { sendClickedCategory } from '../../utils/api';
+import { sendaidashboardClickedCategory, sendClickedCategory } from '../../utils/api';
 import { useLocation } from 'react-router-dom';
 import { getContrastColor } from '../../utils/colorUtils';
+import { update_Ai_Charts_Datas } from '../../features/aiCharts/aiChartSlice';
+import { updateDashboardChartData } from '../../features/viewDashboardSlice/viewDashboardSlice';
+// import { fontFamily } from 'html2canvas/dist/types/css/property-descriptors/font-family';
 const Scatter = ({ width = 300, height = 300, categories = [], values = [], aggregation = "Aggregation", x_axis = "X_axis", y_axis = "Y_axis", otherChartCategories = [], disableInteraction, xFontSize = "xFontSize", fontStyle = "fontStyle", categoryColor = "categoryColor", yFontSize = "yFontSize", valueColor = "valueColor", customHeadings, chartColor,headingColor,areaColor,ClickedTool ,calculationData}) => {
     console.log(customHeadings);
     console.log("chartColor", chartColor);
@@ -17,7 +20,7 @@ const Scatter = ({ width = 300, height = 300, categories = [], values = [], aggr
     const selectedCategory = useSelector((state) => state.viewcharts.selectedCategory);
     const [showResetButton, setShowResetButton] = useState(false);
     const [isFilterActive, setIsFilterActive] = useState(false);
-    const charts = useSelector((state) => state.viewcharts.charts);
+      const charts = useSelector((state) => state.viewdashboard.dashboard_charts);
     const [colors, setColors] = useState([]);
     const location = useLocation();
     const isChartView = location.pathname === "/Charts_view"; // Ensure exact match
@@ -31,7 +34,8 @@ const resolvedColor = isValidValueColor ? valueColor : getContrastColor(areaColo
 const isValidcategoryColor = categoryColor && !invalidColors.includes(categoryColor.toLowerCase());
 
 const resolvedcategoryColor= isValidcategoryColor ? categoryColor : getContrastColor(areaColor || '#ffffff');
-
+ 
+  const chartType = useSelector((state) => state.chartType);
 console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'white'
 
     const generateColors = (numColors) => {
@@ -67,37 +71,82 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
         }
     }, [chartColor, categories]);
     
-    const handleClicked = async (event, chartContext, config) => {
-        if (!isFilterActive) return;
+    // const handleClicked = async (event, chartContext, config) => {
+    //     if (!isFilterActive) return;
+    //     const clickedCategoryIndex = config.dataPointIndex;
+    //     const clickedCategory = categories[clickedCategoryIndex];
+    //     const isCategoryPresentInAllCharts = otherChartCategories.every(chartCats => chartCats.includes(clickedCategory));
+
+    //     if (!isCategoryPresentInAllCharts) {
+    //         alert("Filter cannot be applied as categories differ between charts.");
+    //         return;
+    //     }
+
+    //     try {
+    //         const response = await sendClickedCategory(clickedCategory, charts, x_axis,calculationData);
+    //         response.chart_data_list.forEach((chartData) => {
+    //             const { chart_id, data } = chartData;
+    //             dispatch(updateChartData({
+    //                 chart_id,
+    //                 categories: data.categories,
+    //                 values: data.values,
+    //             }));
+    //         });
+    //     } catch (error) {
+    //         console.error(`Failed to send category ${clickedCategory}:`, error);
+    //     }
+
+    //     dispatch(updateSelectedCategory(clickedCategory));
+    //     dispatch(updateSelectedCategory_xaxis(x_axis));
+    //     dispatch(setChartStatus(true));
+    //     setShowResetButton(true);
+    // };
+
+    
+      const handleClicked = async (event, chartContext, config) => {
         const clickedCategoryIndex = config.dataPointIndex;
+        if (clickedCategoryIndex === -1) {
+          dispatch(updateSelectedCategory(null)); // Reset selection when clicking outside
+          return;
+        }
         const clickedCategory = categories[clickedCategoryIndex];
-        const isCategoryPresentInAllCharts = otherChartCategories.every(chartCats => chartCats.includes(clickedCategory));
-
-        if (!isCategoryPresentInAllCharts) {
-            alert("Filter cannot be applied as categories differ between charts.");
-            return;
-        }
-
+        console.log('clicked category:', clickedCategory);
         try {
-            const response = await sendClickedCategory(clickedCategory, charts, x_axis,calculationData);
-            response.chart_data_list.forEach((chartData) => {
-                const { chart_id, data } = chartData;
-                dispatch(updateChartData({
-                    chart_id,
-                    categories: data.categories,
-                    values: data.values,
-                }));
-            });
-        } catch (error) {
-            console.error(`Failed to send category ${clickedCategory}:`, error);
+          if (chartType?.type === 'AiCharts') {
+            console.log('AI chart detected. Triggering AI chart update...');
+            try {
+              const data = await sendaidashboardClickedCategory(clickedCategory, x_axis);
+              console.log('AI dashboard chart data list:', data.ai_ml_charts_details);
+              dispatch(update_Ai_Charts_Datas(data.ai_ml_charts_details));
+            } catch (err) {
+              console.error("Error in AI chart handler:", err);
+            }
+            } else {
+          const response = await sendClickedCategory(clickedCategory, charts, x_axis,calculationData);
+          console.log('chart_data_list:', response.chart_data_list);
+          response.chart_data_list.forEach((chartData) => {
+            const { chart_id, data } = chartData;
+            dispatch(
+              updateDashboardChartData({
+                chart_id,
+                categories: data.categories,
+                values: data.values,
+                series1: data.series1,
+                series2: data.series2,
+                chartColor: data.chartColor,
+              })    
+            );
+    
+          });
         }
-
+        } catch (error) {
+          console.error(`Failed to send category ${clickedCategory}:`, error);
+        }
+        console.log("clickedCategory12365447",clickedCategory)
         dispatch(updateSelectedCategory(clickedCategory));
-        dispatch(updateSelectedCategory_xaxis(x_axis));
-        dispatch(setChartStatus(true));
-        setShowResetButton(true);
-    };
-
+    
+    
+      };
     const options = {
         colors: colors.length > 0 ? colors : ["#008FFB"],
         chart: {
@@ -115,10 +164,17 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
         
         xaxis: {
             categories: categories,
+             title: {
+                            text: `${x_axis}`,
+                        style: {
+                           color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                         },
+                        },
             labels: {
                 style: {
                     fontSize: `${xFontSize}px`,
                     fontWeight: 400,
+                    fontFamily:fontStyle,
                     // colors: categoryColor,
                     colors: resolvedcategoryColor
                 },
@@ -134,11 +190,15 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
             },
         },
         yaxis: {
-            title: { text: `${y_axis}` },
+            title: { text: `${y_axis}`, style: {
+                           color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                         }, },
+            
             labels: {
                 style: {
                     fontSize: `${yFontSize}px`,
                     fontWeight: 400,
+                    fontFamily:fontStyle,
                     // colors: valueColor,
                     colors: Array(10).fill(resolvedColor)
                 },

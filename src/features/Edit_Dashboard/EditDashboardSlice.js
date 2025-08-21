@@ -1,4 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
+import { setFontStyles } from "../EditChart/EditChartSlice";
 
 const initialState = {
   textChart: [],
@@ -13,7 +14,10 @@ const initialState = {
   chartFilter:[],
   droppableBgColor:[],
   imagePositions: [],
-
+fontSize:'32',
+ fontColor:'black', 
+ fontStyleState:'normal',
+ wallpaper: null,
 };
 
 const viewChartSlice = createSlice({
@@ -40,6 +44,9 @@ const viewChartSlice = createSlice({
       state.chartFilter={};
       state.droppableBgColor=[];
       state.imagePositions=[];
+      state.setFontStyleLocal=[];
+      state.setFontColor=[];
+      state.setFontSize=[];
       console.log("Dashboard Charts Cleared", state.dashboard_charts);
     },
 
@@ -98,6 +105,18 @@ const viewChartSlice = createSlice({
     setDashboardHeading: (state, action) => {
       state.DashboardHeading = action.payload;
       console.log("Dashboard Heading Updated:", action.payload);
+    },
+     setFontSize: (state, action) => {
+      state.fontSize = action.payload;
+      console.log("Dashboard fontSize Updated:", action.payload);
+    },
+     setFontColor: (state, action) => {
+      state.fontColor = action.payload;
+      console.log("Dashboard fontColor Updated:", action.payload);
+    },
+     setFontStyleLocal: (state, action) => {
+      state.fontStyleState = action.payload;
+      console.log("Dashboard fontStyleState Updated:", action.payload);
     },
       setdroppableBgColor: (state, action) => {
       state.droppableBgColor = action.payload;
@@ -220,6 +239,10 @@ replaceChartPosition: (state, action) => {
     };
   }
 },
+setWallpaper: (state, action) => {
+  state.wallpaper = action.payload;
+},
+
 updateChartType: (state, action) => {
   const { chartName, newType } = action.payload;
   const chart = state.dashboard_charts.find(chart => chart.chart_id === chartName);
@@ -260,7 +283,7 @@ export const {
   addChart,
   setChartFilters,
   removeChart,
-  replaceChart,setdroppableBgColor,replaceChartPosition,setImagePositions,addImagePosition,removeImagePosition,replaceImagePosition,updateChartType     
+  replaceChart,setdroppableBgColor,replaceChartPosition,setImagePositions,addImagePosition,removeImagePosition,replaceImagePosition,updateChartType,setFontColor,setFontStyleLocal,setFontSize,setWallpaper     
 } = viewChartSlice.actions;
 
 export default viewChartSlice.reducer;

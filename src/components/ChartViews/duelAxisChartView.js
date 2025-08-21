@@ -101,10 +101,10 @@ combinedData.sort((a, b) => {
   }
 });
 
-// Slice for Top 10 or Bottom 10 if needed
-if (ClickedTool === 'Show Top 10' || ClickedTool === 'Show Bottom 10') {
-  combinedData = combinedData.slice(0, 10);
-}
+// // Slice for Top 10 or Bottom 10 if needed
+// if (ClickedTool === 'Show Top 10' || ClickedTool === 'Show Bottom 10') {
+//   combinedData = combinedData.slice(0, 10);
+// }
 
 // Extract the sorted arrays
 const sortedCategories = combinedData.map(item => item.category);
@@ -187,6 +187,11 @@ const sortedSeries2 = combinedData.map(item => item.lineValue);
   },
         xaxis: {
             categories: sortedCategories,
+                  title: {
+                    text: `${x_axis}`,style: {
+                                color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                               },
+                  },
             labels: {
                 style: {
                     fontSize:`${xFontSize}px`,
@@ -209,7 +214,10 @@ const sortedSeries2 = combinedData.map(item => item.lineValue);
             {
                 seriesName: 'Bar Series',
                 title: {
-                    text: `${y_axis1}`,
+                    text: `${y_axis1}`,style: {
+                                color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                               },
+                  
                 },
                 labels: {
                     formatter: (value) => {

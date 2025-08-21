@@ -432,7 +432,7 @@ const TableChart = ({
     }, [categories, values]);
    const totalRows = tableData.length + 3; // +1 for header
 const rowHeight = chartHeight / totalRows;
-const colWidth = chartWidth / tableHeaders.length;
+const colWidth = chartWidth / tableHeaders.length-2;
 
 
     return (

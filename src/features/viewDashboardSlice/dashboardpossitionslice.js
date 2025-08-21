@@ -30,10 +30,9 @@ const viewchartspostion = createSlice({
       );
     },
     clearAllChartPositions: (state) => {
-      // Clear all chart positions
       state.chartPositions = [];
-       state.images = [];
     },
+
      addImage: (state, action) => {
       state.images.push(action.payload);
     },
@@ -52,7 +51,12 @@ const viewchartspostion = createSlice({
     },
     clearAllImages: (state) => {
       state.images = [];
-    }
+    },
+     resetDahboardState: () => {
+  return initialState;
+}
+
+
   },
 });
 
@@ -65,7 +69,7 @@ export const {
   updateImage,
   removeImage,
   setImages,
-  clearAllImages
+  clearAllImages,resetDahboardState
 } = viewchartspostion.actions;
 
 export default viewchartspostion.reducer;

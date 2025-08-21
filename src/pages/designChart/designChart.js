@@ -7,20 +7,32 @@ import HomePage from '../HomePage';
 import {useNavigate} from "react-router";
 function LoadDataPage() {
     
- const navigate = useNavigate(); // Initialize useNavigate
+  const navigate = useNavigate(); // Initialize useNavigate
     
-      useEffect(() => {
-          const disableBackButton = () => {
-              navigate("/"); // Redirect to the login page
-          };
+//       useEffect(() => {
+//           const disableBackButton = () => {
+//               navigate("/"); // Redirect to the login page
+//           };
     
-          window.history.pushState(null, "", window.location.href);
-          window.addEventListener("popstate", disableBackButton);
+//           window.history.pushState(null, "", window.location.href);
+//           window.addEventListener("popstate", disableBackButton);
     
-          return () => {
-              window.removeEventListener("popstate", disableBackButton);
-          };
-      }, [navigate]); // Add navigate to the dependency array
+//           return () => {
+//               window.removeEventListener("popstate", disableBackButton);
+//           };
+//       }, [navigate]); // Add navigate to the dependency array
+useEffect(() => {
+  const handlePopState = () => {
+    navigate('/Design-page');
+  };
+
+  window.addEventListener('popstate', handlePopState);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, [navigate]);
     return (
       <div className="App">
         <HomePage />

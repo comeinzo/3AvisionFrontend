@@ -79,6 +79,8 @@ const viewChartSlice = createSlice({
           }
         });
       },
+      resetChartState: () => initialState,
+
       
   }
 });
@@ -91,7 +93,7 @@ export const {
   removeChartData,
   updateSelectedCategory,
   setChartStatus,
-  updateSelectedCategory_xaxis,updateChartAreaColor,clearAllChartAreaColors ,updateChartOpacity
+  updateSelectedCategory_xaxis,updateChartAreaColor,clearAllChartAreaColors ,updateChartOpacity,resetChartState
 } = viewChartSlice.actions;
 
 export default viewChartSlice.reducer;

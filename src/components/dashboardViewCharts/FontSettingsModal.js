@@ -72,9 +72,9 @@ import React from 'react';
            sx={{
              mt: 2,
              fontSize: newFontSize,
-             fontStyle: newFontStyle.includes("italic") ? "italic" : "normal",
-             fontWeight: newFontStyle.includes("bold") ? "bold" : "normal",
-             textDecoration: newFontStyle.includes("underline") ? "underline" : "none",
+             fontStyle: newFontStyle?.includes("italic") ? "italic" : "normal",
+             fontWeight: newFontStyle?.includes("bold") ? "bold" : "normal",
+             textDecoration: newFontStyle?.includes("underline") ? "underline" : "none",
              color: newFontColor,
            }}
          >

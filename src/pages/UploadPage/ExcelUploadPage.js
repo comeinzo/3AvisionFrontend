@@ -15,6 +15,8 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ErrorIcon from '@mui/icons-material/Error';
 import TableViewIcon from '@mui/icons-material/TableView';
 import { styled } from '@mui/material/styles';
+import CustomAlertDialog from '../../components/DashboardActions/CustomAlertDialog'; // Import the new component
+import ConfirmationDialog from '../../components/DashboardActions/ConfirmationDialog';
 import {
   Button,
   TextField,
@@ -36,7 +38,7 @@ import {
   Paper,
   useTheme,
   useMediaQuery,
-  CircularProgress
+  CircularProgress, 
 } from '@mui/material';
 import * as XLSX from 'xlsx';
 import { fetchTableNamesAPI, checkIfTableInUse, fetchTableColumnsAPI } from '../../utils/api';
@@ -44,6 +46,7 @@ import HomePage from '../HomePage';
 import Chip from '@mui/material/Chip';
 import { useNavigate } from "react-router";
 import { alpha } from '@mui/material/styles';
+import InfoIcon from '@mui/icons-material/Info'; // Added for dialog
 const VisuallyHiddenInput = styled('input')({
   clip: 'rect(0 0 0 0)',
   clipPath: 'inset(50%)',
@@ -108,7 +111,7 @@ const UploadZone = styled(Paper)(({ theme, isDragOver }) => ({
 }));
 
 const GradientBox = styled(Box)(({ theme }) => ({
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  //  background: `linear-gradient(135deg, ${appBarColor}88 0%, ${appBarColor}44 100%)`, 
   borderRadius: 16,
   padding: theme.spacing(3),
   color: 'white',
@@ -522,10 +525,43 @@ const ExcelUpload = () => {
   const [processingStep, setProcessingStep] = React.useState('');
   const [fileProcessingProgress, setFileProcessingProgress] = React.useState(0);
   const [isEstimatedCount, setIsEstimatedCount] = React.useState(false);
-  
+   const [dialogOpen, setDialogOpen] = React.useState(false);
+  const [dialogTitle, setDialogTitle] = React.useState('');
+  const [dialogMessage, setDialogMessage] = React.useState('');
+  const [dialogType, setDialogType] = React.useState(''); // 'success', 'error', 'info'
+const [confirmOpen, setConfirmOpen] = React.useState(false);
+const [confirmMessage, setConfirmMessage] = React.useState('');
+const [confirmTitle, setConfirmTitle] = React.useState('');
+const [confirmResolve, setConfirmResolve] = React.useState(null);
+const navigate = useNavigate();
+useEffect(() => {
+  const handlePopState = () => {
+    navigate('/data-source-page');
+  };
+
+  window.addEventListener('popstate', handlePopState);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, [navigate]);
+const handleConfirm = (title, message) => {
+  return new Promise((resolve) => {
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+    setConfirmResolve(() => resolve);
+  });
+};
+
+const handleConfirmClose = (result) => {
+  setConfirmOpen(false);
+  if (confirmResolve) confirmResolve(result);
+};
   const company_database = sessionStorage.getItem('company_name');
   const databaseName = sessionStorage.getItem('company_name');
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
     const fontStyle = useSelector((state) => state.barColor.fontStyle);
  const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
@@ -536,26 +572,52 @@ const ExcelUpload = () => {
     { label: 'Upload Data', description: 'Import data to database' },
   ];
 
-  useEffect(() => {
-    const disableBackButton = () => {
-      navigate("/");
-    };
-    window.history.pushState(null, "", window.location.href);
-    window.addEventListener("popstate", disableBackButton);
-    return () => window.removeEventListener("popstate", disableBackButton);
-  }, [navigate]);
-
+  // useEffect(() => {
+  //   const disableBackButton = () => {
+  //     navigate("/");
+  //   };
+  //   window.history.pushState(null, "", window.location.href);
+  //   window.addEventListener("popstate", disableBackButton);
+  //   return () => window.removeEventListener("popstate", disableBackButton);
+  // }, [navigate]);
+ const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+  // React.useEffect(() => {
+  //   if (uploadError && uploadError.status === false) {
+  //     setSnackbarMessage(uploadError.message);
+  //     setSnackbarSeverity('error');
+  //     setSnackbarOpen(true);
+  //     setUploadProgress(0);
+      
+  //   } else if (uploadSuccess) {
+  //     setSnackbarMessage("File uploaded successfully!");
+  //     setSnackbarSeverity('success');
+  //     setSnackbarOpen(true);
+  //     setActiveStep(4);
+  //     setUploadProgress(100);
+  //     setSheetNames([]);
+  //     setSelectedSheet('');
+  //     dispatch(setColumnHeadings([]));
+  //     dispatch(setPrimaryKeyColumn(null));
+  //     setExcelData([]);
+  //     setTotalColumns(0);
+  //     setTotalRows(0);
+  //   }
+  // }, [uploadError, uploadSuccess,dispatch]);
   React.useEffect(() => {
     if (uploadError && uploadError.status === false) {
-      setSnackbarMessage(uploadError.message);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
-      setUploadProgress(0);
+      setDialogTitle('Error');
+      setDialogMessage(uploadError.message);
+      setDialogType('error');
+      setDialogOpen(true);
       
     } else if (uploadSuccess) {
-      setSnackbarMessage("File uploaded successfully!");
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      setDialogTitle('Success');
+      setDialogMessage('File uploaded successfully!');
+      setDialogType('success');
+      setDialogOpen(true);
+      
       setActiveStep(4);
       setUploadProgress(100);
       setSheetNames([]);
@@ -566,7 +628,8 @@ const ExcelUpload = () => {
       setTotalColumns(0);
       setTotalRows(0);
     }
-  }, [uploadError, uploadSuccess,dispatch]);
+  }, [uploadError, uploadSuccess, dispatch]);
+
 
   React.useEffect(() => {
     if (file && !selectedSheet) setActiveStep(1);
@@ -592,10 +655,9 @@ const ExcelUpload = () => {
     const droppedFile = e.dataTransfer.files[0];
     if (droppedFile) processFile(droppedFile);
   };
-
-  const processFile = async (selectedFile) => {
+ const processFile = async (selectedFile) => {
     if (!selectedFile) return;
- dispatch(setFile(null));
+    dispatch(setFile(null));
     dispatch(setColumnHeadings([]));
     dispatch(setPrimaryKeyColumn(null));
     setSheetNames([]);
@@ -606,10 +668,12 @@ const ExcelUpload = () => {
     setActiveStep(0);
     setUploadProgress(0);
     setIsEstimatedCount(false);
+
     if (selectedFile.size > MAX_FILE_SIZE) {
-      setSnackbarMessage(`File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      setDialogTitle('Error');
+      setDialogMessage(`File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+      setDialogType('error');
+      setDialogOpen(true);
       return;
     }
 
@@ -622,32 +686,30 @@ const ExcelUpload = () => {
       
       try {
         dispatch(setFile(selectedFile));
-        
-        // Show file size info
+        // Show info dialog for large files
         if (fileSizeMB > 50) {
-          setSnackbarMessage(`Large file detected (${fileSizeMB.toFixed(1)}MB). Processing optimized for performance.`);
-          setSnackbarSeverity('info');
-          setSnackbarOpen(true);
+          setDialogTitle('Info');
+          setDialogMessage(`Large file detected (${fileSizeMB.toFixed(1)}MB). Processing optimized for performance.`);
+          setDialogType('info');
+          setDialogOpen(true);
         }
-        
         const sheetNames = await getSheetNamesOnly(selectedFile, (progress) => {
           setFileProcessingProgress(progress);
           setProcessingStep(`Reading sheet names... ${Math.round(progress)}%`);
         });
-        
         setSheetNames(sheetNames);
         setActiveStep(1);
         setProcessingStep('Sheet names loaded!');
-        
-        setSnackbarMessage(`Found ${sheetNames.length} sheet(s). Select a sheet to view columns.`);
-        setSnackbarSeverity('success');
-        setSnackbarOpen(true);
-        
+        setDialogTitle('Success');
+        setDialogMessage(`Found ${sheetNames.length} sheet(s). Select a sheet to view columns.`);
+        setDialogType('success');
+        setDialogOpen(true);
       } catch (error) {
         console.error('Error processing file:', error);
-        setSnackbarMessage('Error reading Excel file. Please ensure it\'s a valid Excel file.');
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+        setDialogTitle('Error');
+        setDialogMessage('Error reading Excel file. Please ensure it\'s a valid Excel file.');
+        setDialogType('error');
+        setDialogOpen(true);
       } finally {
         setIsProcessing(false);
         setFileProcessingProgress(0);
@@ -655,17 +717,146 @@ const ExcelUpload = () => {
       }
     } else {
       dispatch(setFile(null));
-      setSnackbarMessage('Please upload a valid Excel file (.xlsx format).');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      setDialogTitle('Error');
+      setDialogMessage('Please upload a valid Excel file (.xlsx format).');
+      setDialogType('error');
+      setDialogOpen(true);
     }
   };
+//   const processFile = async (selectedFile) => {
+//     if (!selectedFile) return;
+//  dispatch(setFile(null));
+//     dispatch(setColumnHeadings([]));
+//     dispatch(setPrimaryKeyColumn(null));
+//     setSheetNames([]);
+//     setSelectedSheet('');
+//     setExcelData([]);
+//     setTotalColumns(0);
+//     setTotalRows(0);
+//     setActiveStep(0);
+//     setUploadProgress(0);
+//     setIsEstimatedCount(false);
+//     if (selectedFile.size > MAX_FILE_SIZE) {
+//       setSnackbarMessage(`File size exceeds the limit of ${MAX_FILE_SIZE / (1024 * 1024)} MB.`);
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//       return;
+//     }
+
+//     if (selectedFile.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+//       setIsProcessing(true);
+//       setProcessingStep('Reading sheet names...');
+//       setFileProcessingProgress(0);
+      
+//       const fileSizeMB = selectedFile.size / (1024 * 1024);
+      
+//       try {
+//         dispatch(setFile(selectedFile));
+        
+//         // Show file size info
+//         if (fileSizeMB > 50) {
+//           setSnackbarMessage(`Large file detected (${fileSizeMB.toFixed(1)}MB). Processing optimized for performance.`);
+//           setSnackbarSeverity('info');
+//           setSnackbarOpen(true);
+//         }
+        
+//         const sheetNames = await getSheetNamesOnly(selectedFile, (progress) => {
+//           setFileProcessingProgress(progress);
+//           setProcessingStep(`Reading sheet names... ${Math.round(progress)}%`);
+//         });
+        
+//         setSheetNames(sheetNames);
+//         setActiveStep(1);
+//         setProcessingStep('Sheet names loaded!');
+        
+//         setSnackbarMessage(`Found ${sheetNames.length} sheet(s). Select a sheet to view columns.`);
+//         setSnackbarSeverity('success');
+//         setSnackbarOpen(true);
+        
+//       } catch (error) {
+//         console.error('Error processing file:', error);
+//         setSnackbarMessage('Error reading Excel file. Please ensure it\'s a valid Excel file.');
+//         setSnackbarSeverity('error');
+//         setSnackbarOpen(true);
+//       } finally {
+//         setIsProcessing(false);
+//         setFileProcessingProgress(0);
+//         setProcessingStep('');
+//       }
+//     } else {
+//       dispatch(setFile(null));
+//       setSnackbarMessage('Please upload a valid Excel file (.xlsx format).');
+//       setSnackbarSeverity('error');
+//       setSnackbarOpen(true);
+//     }
+//   };
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     processFile(selectedFile);
   };
 
+  // const handleSheetSelection = async (sheetName) => {
+  //   setSelectedSheet(sheetName);
+  //   setExcelData([]);
+  //   setTotalRows(0);
+  //   setIsEstimatedCount(false);
+  //   setIsProcessing(true);
+  //   setProcessingStep('Loading column headers...');
+  //   setFileProcessingProgress(0);
+
+  //   try {
+  //     const startTime = performance.now();
+      
+  //     const result = await processSelectedSheetSmart(
+  //       file, 
+  //       sheetName, 
+  //       (progress) => {
+  //         setFileProcessingProgress(progress);
+  //         setProcessingStep(`Loading sheet "${sheetName}"... ${Math.round(progress)}%`);
+  //       },
+  //       (rowCount) => {
+  //         setTotalRows(rowCount);
+  //       }
+  //     );
+
+  //     const endTime = performance.now();
+  //     const processingTime = endTime - startTime;
+
+  //     setTotalColumns(result.totalColumns);
+  //     setTotalRows(result.totalRows);
+  //     setIsEstimatedCount(result.isEstimated || false);
+  //     setExcelData([result.headers]);
+  //     dispatch(setColumnHeadings(result.headers.map((header) => 
+  //       String(header).toLowerCase().replace(/\s+/g, '_')
+  //     )));
+  //     setActiveStep(2);
+      
+  //     const rowCountText = result.totalRows > 1000 
+  //       ? `${(result.totalRows / 1000).toFixed(1)}K` 
+  //       : result.totalRows.toLocaleString();
+      
+  //     const estimatedText = result.isEstimated ? ' (estimated)' : '';
+      
+  //     setSnackbarMessage(
+  //       `Sheet "${sheetName}" loaded in ${processingTime.toFixed(0)}ms! Contains ${rowCountText} rows${estimatedText} with ${result.totalColumns} columns.`
+  //     );
+  //     setSnackbarSeverity('success');
+  //     setSnackbarOpen(true);
+      
+  //   } catch (error) {
+  //     console.error('Error processing sheet:', error);
+  //     setSnackbarMessage(`Error processing sheet "${sheetName}". Please try another sheet.`);
+  //     setSnackbarSeverity('error');
+  //     setSnackbarOpen(true);
+  //   } finally {
+  //     setIsProcessing(false);
+  //     setFileProcessingProgress(0);
+  //     setProcessingStep('');
+  //   }
+  // };
+
+  
   const handleSheetSelection = async (sheetName) => {
     setSelectedSheet(sheetName);
     setExcelData([]);
@@ -677,10 +868,9 @@ const ExcelUpload = () => {
 
     try {
       const startTime = performance.now();
-      
       const result = await processSelectedSheetSmart(
-        file, 
-        sheetName, 
+        file,
+        sheetName,
         (progress) => {
           setFileProcessingProgress(progress);
           setProcessingStep(`Loading sheet "${sheetName}"... ${Math.round(progress)}%`);
@@ -689,7 +879,6 @@ const ExcelUpload = () => {
           setTotalRows(rowCount);
         }
       );
-
       const endTime = performance.now();
       const processingTime = endTime - startTime;
 
@@ -697,9 +886,7 @@ const ExcelUpload = () => {
       setTotalRows(result.totalRows);
       setIsEstimatedCount(result.isEstimated || false);
       setExcelData([result.headers]);
-      dispatch(setColumnHeadings(result.headers.map((header) => 
-        String(header).toLowerCase().replace(/\s+/g, '_')
-      )));
+      dispatch(setColumnHeadings(result.headers.map((header) => String(header).toLowerCase().replace(/\s+/g, '_'))));
       setActiveStep(2);
       
       const rowCountText = result.totalRows > 1000 
@@ -708,24 +895,25 @@ const ExcelUpload = () => {
       
       const estimatedText = result.isEstimated ? ' (estimated)' : '';
       
-      setSnackbarMessage(
+      setDialogTitle('Success');
+      setDialogMessage(
         `Sheet "${sheetName}" loaded in ${processingTime.toFixed(0)}ms! Contains ${rowCountText} rows${estimatedText} with ${result.totalColumns} columns.`
       );
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+      setDialogType('success');
+      setDialogOpen(true);
       
     } catch (error) {
       console.error('Error processing sheet:', error);
-      setSnackbarMessage(`Error processing sheet "${sheetName}". Please try another sheet.`);
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      setDialogTitle('Error');
+      setDialogMessage(`Error processing sheet "${sheetName}". Please try another sheet.`);
+      setDialogType('error');
+      setDialogOpen(true);
     } finally {
       setIsProcessing(false);
       setFileProcessingProgress(0);
       setProcessingStep('');
     }
   };
-
   const formatRowCount = (count) => {
     if (count >= 1000000) {
       return `${(count / 1000000).toFixed(1)}M`;
@@ -735,69 +923,162 @@ const ExcelUpload = () => {
     return count.toLocaleString();
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
   
+  //   if (!file || !selectedSheet) {
+  //     setSnackbarMessage("Please upload a file and select a sheet.");
+  //     setSnackbarSeverity('warning');
+  //     setSnackbarOpen(true);
+  //     return;
+  //   }
+
+  //   setUploadProgress(0);
+  
+  //   if (primaryKeyColumn !== null && columnHeadings[primaryKeyColumn]) {
+  //     const currentTableName = selectedSheet.toLowerCase().replace(/\s+/g, "_");
+  
+  //     try {
+  //       const existingTableNames = await fetchTableNamesAPI(databaseName);
+  
+  //       if (existingTableNames.includes(currentTableName)) {
+  //         const existingColumns = await fetchTableColumnsAPI(currentTableName, company_database);
+  //         const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
+  //         const isTableInUse = await checkIfTableInUse(currentTableName);
+    
+  //         if (isTableInUse) {
+  //           const userChoice = window.confirm(
+  //             `The table "${currentTableName}" is being used for chart creation. Do you want to proceed with updating it?`
+  //           );
+        
+  //           if (!userChoice) {
+  //             setSnackbarMessage("Upload cancelled by user.");
+  //             setSnackbarSeverity('info');
+  //             setSnackbarOpen(true);
+  //             return;
+  //           }
+        
+  //           const mismatchedColumns = uploadedColumns.filter(
+  //             (col) => !existingColumns.includes(col)
+  //           );
+  //           const missingColumns = existingColumns.filter(
+  //             (col) => !uploadedColumns.includes(col)
+  //           );
+        
+  //           if (mismatchedColumns.length > 0) {
+  //             setSnackbarMessage(
+  //               `Column mismatch detected! The following columns in the uploaded file do not exist in the existing table "${currentTableName}": ${mismatchedColumns.join(", ")}.`
+  //             );
+  //             setSnackbarSeverity('error');
+  //             setSnackbarOpen(true);
+  //             return;
+  //           }
+        
+  //           if (missingColumns.length > 0) {
+  //             setSnackbarMessage(
+  //               `Missing columns detected! The following columns are required but not found in the uploaded file: ${missingColumns.join(", ")}. Please rename the sheet and upload again.`
+  //             );
+  //             setSnackbarSeverity('error');
+  //             setSnackbarOpen(true);
+  //             return;
+  //           }
+        
+  //           setSnackbarMessage(`Table "${currentTableName}" is in use, but the uploaded file matches the required structure. Proceeding with upload.`);
+  //           setSnackbarSeverity('info');
+  //           setSnackbarOpen(true);
+  //         }
+  //       }
+
+  //       dispatch(uploadExcel({
+  //         user_id,
+  //         file,
+  //         primaryKeyColumnName: columnHeadings[primaryKeyColumn],
+  //         company_database,
+  //         selectedSheet,
+  //         onUploadProgress: (progressEvent) => {
+  //           const { loaded, total } = progressEvent;
+  //           const percentage = Math.floor((loaded * 100) / total);
+  //           setUploadProgress(percentage);
+  //         },
+  //       }));
+  //     } catch (error) {
+  //       setSnackbarMessage("Error checking existing tables.");
+  //       setSnackbarSeverity('error');
+  //       setSnackbarOpen(true);
+  //     }
+  //   } else {
+  //     setSnackbarMessage("Please select a primary key column before uploading.");
+  //     setSnackbarSeverity('warning');
+  //     setSnackbarOpen(true);
+  //   }
+  // };
+
+    const handleSubmit = async (e) => {
+    e.preventDefault();
     if (!file || !selectedSheet) {
-      setSnackbarMessage("Please upload a file and select a sheet.");
-      setSnackbarSeverity('warning');
-      setSnackbarOpen(true);
+      setDialogTitle('Warning');
+      setDialogMessage('Please upload a file and select a sheet.');
+      setDialogType('info');
+      setDialogOpen(true);
       return;
     }
 
     setUploadProgress(0);
-  
+
     if (primaryKeyColumn !== null && columnHeadings[primaryKeyColumn]) {
       const currentTableName = selectedSheet.toLowerCase().replace(/\s+/g, "_");
-  
       try {
         const existingTableNames = await fetchTableNamesAPI(databaseName);
-  
         if (existingTableNames.includes(currentTableName)) {
           const existingColumns = await fetchTableColumnsAPI(currentTableName, company_database);
           const uploadedColumns = columnHeadings.map((col) => col.toLowerCase());
           const isTableInUse = await checkIfTableInUse(currentTableName);
-    
+
           if (isTableInUse) {
-            const userChoice = window.confirm(
-              `The table "${currentTableName}" is being used for chart creation. Do you want to proceed with updating it?`
-            );
-        
-            if (!userChoice) {
-              setSnackbarMessage("Upload cancelled by user.");
-              setSnackbarSeverity('info');
-              setSnackbarOpen(true);
-              return;
-            }
-        
-            const mismatchedColumns = uploadedColumns.filter(
-              (col) => !existingColumns.includes(col)
-            );
-            const missingColumns = existingColumns.filter(
-              (col) => !uploadedColumns.includes(col)
-            );
-        
+            
+            // const userChoice = window.confirm(
+            //   `The table "${currentTableName}" is being used for chart creation. Do you want to proceed with updating it?`
+            // );
+            // if (!userChoice) {
+            //   setDialogTitle('Information');
+            //   setDialogMessage('Upload cancelled by user.');
+            //   setDialogType('info');
+            //   setDialogOpen(true);
+            //   return;
+            // }
+            const proceed = await handleConfirm(
+  `The table "${currentTableName}" is being used for chart creation. Do you want to proceed with updating it?`
+);
+if (!proceed) {
+  setDialogTitle('Information');
+  setDialogMessage(`Upload cancelled by user. You chose "Cancel" for updating table "${currentTableName}".`);
+  setDialogType('info');
+  setDialogOpen(true);
+  return;
+}
+            const mismatchedColumns = uploadedColumns.filter((col) => !existingColumns.includes(col));
+            const missingColumns = existingColumns.filter((col) => !uploadedColumns.includes(col));
+
             if (mismatchedColumns.length > 0) {
-              setSnackbarMessage(
-                `Column mismatch detected! The following columns in the uploaded file do not exist in the existing table "${currentTableName}": ${mismatchedColumns.join(", ")}.`
-              );
-              setSnackbarSeverity('error');
-              setSnackbarOpen(true);
+              setDialogTitle('Error');
+              setDialogMessage(`Column mismatch detected! The following columns in the uploaded file do not exist in the existing table "${currentTableName}": ${mismatchedColumns.join(", ")}.`);
+              setDialogType('error');
+              setDialogOpen(true);
               return;
             }
-        
+
             if (missingColumns.length > 0) {
-              setSnackbarMessage(
-                `Missing columns detected! The following columns are required but not found in the uploaded file: ${missingColumns.join(", ")}. Please rename the sheet and upload again.`
-              );
-              setSnackbarSeverity('error');
-              setSnackbarOpen(true);
+              setDialogTitle('Error');
+              setDialogMessage(`Missing columns detected! The following columns are required but not found in the uploaded file: ${missingColumns.join(", ")}. Please rename the sheet and upload again.`);
+              setDialogType('error');
+              setDialogOpen(true);
               return;
             }
-        
-            setSnackbarMessage(`Table "${currentTableName}" is in use, but the uploaded file matches the required structure. Proceeding with upload.`);
-            setSnackbarSeverity('info');
-            setSnackbarOpen(true);
+
+            setDialogTitle('Information');
+            setDialogMessage(`Table "${currentTableName}" is in use, but the uploaded file matches the required structure. Proceeding with upload.`);
+            setDialogType('info');
+            setDialogOpen(true);
           }
         }
 
@@ -814,17 +1095,18 @@ const ExcelUpload = () => {
           },
         }));
       } catch (error) {
-        setSnackbarMessage("Error checking existing tables.");
-        setSnackbarSeverity('error');
-        setSnackbarOpen(true);
+        setDialogTitle('Error');
+        setDialogMessage('Error checking existing tables.');
+        setDialogType('error');
+        setDialogOpen(true);
       }
     } else {
-      setSnackbarMessage("Please select a primary key column before uploading.");
-      setSnackbarSeverity('warning');
-      setSnackbarOpen(true);
+      setDialogTitle('Warning');
+      setDialogMessage('Please select a primary key column before uploading.');
+      setDialogType('info');
+      setDialogOpen(true);
     }
   };
-
   return (
     <React.Fragment>
       <CssBaseline />
@@ -841,7 +1123,8 @@ const ExcelUpload = () => {
               <StyledCard sx={{ height: { lg: 'calc(100vh - 120px)' }, overflow: 'auto' }}>
                 <CardContent sx={{ p: { xs: 2, sm: 3 } }}>
                   {/* Header */}
-                  <GradientBox sx={{ mb: 3 }}>
+                  {/* <GradientBox sx={{ mb: 3 }}> */}
+                  <GradientBox sx={{ background: `linear-gradient(135deg, ${appBarColor}88 0%, ${appBarColor}44 100%)`, }} >
                     <Typography variant={isMobile ? "h5" : "h4"} sx={{ fontWeight: 700, mb: 1 , fontFamily: fontStyle}}>
                       Excel Upload Pro
                     </Typography>
@@ -1487,6 +1770,42 @@ const ExcelUpload = () => {
           {snackbarMessage}
         </Alert>
       </Snackbar>
+       {/* <Dialog
+        open={dialogOpen}
+        onClose={handleDialogClose}
+        aria-labelledby="dialog-title"
+        aria-describedby="dialog-description"
+      >
+        <DialogTitle id="dialog-title" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {dialogType === 'success' && <CheckCircleIcon color="success" />}
+          {dialogType === 'error' && <ErrorIcon color="error" />}
+          {dialogType === 'info' && <InfoIcon color="info" />}
+          {dialogTitle}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="dialog-description" sx={{ fontFamily: fontStyle }}>
+            {dialogMessage}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleDialogClose} autoFocus>
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog> */}
+        <CustomAlertDialog
+      open={dialogOpen}
+      onClose={handleDialogClose}
+      title={dialogTitle}
+      message={dialogMessage}
+      type={dialogType}
+    />
+    <ConfirmationDialog
+  open={confirmOpen}
+  onClose={handleConfirmClose}
+  title={confirmTitle}
+  message={confirmMessage}
+/>
     </React.Fragment>
   );
 };

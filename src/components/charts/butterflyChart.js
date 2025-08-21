@@ -40,6 +40,7 @@ const ButterflyChart = ({
 const isValidValueColor = valueColor && !invalidColors.includes(valueColor.toLowerCase());
 const resolvedColor = isValidValueColor ? valueColor : getContrastColor(areaColor|| '#ffffff');
 const isValidcategoryColor = categoryColor && !invalidColors.includes(categoryColor.toLowerCase());
+ const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
 
 const resolvedcategoryColor= isValidcategoryColor ? categoryColor : getContrastColor(areaColor || '#ffffff');
 // function getContrastColor(color) {
@@ -306,6 +307,9 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
                 horizontal: true,
                 barHeight: "60%",
             },
+        },
+        dataLabels: {
+          enabled: showDataLabels, 
         },
         tooltip: {
             enabled: true,

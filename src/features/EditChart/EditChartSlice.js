@@ -30,20 +30,31 @@ const chartSlice = createSlice({
     chart_name :null
   },
   reducers: {
+//  setFilterOptionsForColumn: (state, action) => {
+//   const { column, options } = action.payload;
+
+//   if (!options || (Array.isArray(options) && options.length === 0)) {
+//       // If options is undefined or an empty array, remove the column from state
+//       state.filterOptions = { ...state.filterOptions };
+//       delete state.filterOptions[column];
+
+//       if (state.checkedOptions[column]) delete state.checkedOptions[column];
+//   } else {
+//       state.filterOptions = { ...state.filterOptions, [column]: options };
+//       state.checkedOptions = { ...state.checkedOptions, [column]: [...options] };
+//   }
+// },
  setFilterOptionsForColumn: (state, action) => {
-  const { column, options } = action.payload;
+      const { column, options } = action.payload;
+      if (!options || (Array.isArray(options) && options.length === 0)) {
+        delete state.filterOptions[column];
+        delete state.checkedOptions[column];
+      } else {
+        state.filterOptions[column] = options;
+        state.checkedOptions[column] = [...options];
+      }
+    },
 
-  if (!options || (Array.isArray(options) && options.length === 0)) {
-      // If options is undefined or an empty array, remove the column from state
-      state.filterOptions = { ...state.filterOptions };
-      delete state.filterOptions[column];
-
-      if (state.checkedOptions[column]) delete state.checkedOptions[column];
-  } else {
-      state.filterOptions = { ...state.filterOptions, [column]: options };
-      state.checkedOptions = { ...state.checkedOptions, [column]: [...options] };
-  }
-},
 
       toggleFilterDropdownForColumn: (state, action) => {
         state.filterDropdowns[action.payload] = !state.filterDropdowns[action.payload];
@@ -109,6 +120,8 @@ const chartSlice = createSlice({
   },
   setSelectAllCheckedForColumn: (state, action) => {
     const { column, isChecked } = action.payload;
+    
+  console.log("Updating selectAllCheckedForColumn in Redux:", column, isChecked);
     state.selectAllCheckedForColumn[column] = isChecked;
     if (isChecked) {
       state.checkedOptions[column] = state.filterOptions[column] || []; // Select all
@@ -117,6 +130,7 @@ const chartSlice = createSlice({
     }
   },
   },
+  
 
   extraReducers: (builder) => {
     builder

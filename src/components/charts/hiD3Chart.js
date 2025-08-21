@@ -23,9 +23,9 @@ const D3Chart = ({
   const tooltipRef = useRef(null);
   const svgContainerRef = useRef(null);
 
-  const xFontSize = useSelector((state) => state.toolTip.fontSizeX || "12");
+  const xFontSize = useSelector((state) => state.toolTip.fontSizeX || "16");
   const fontStyle = useSelector((state) => state.toolTip.fontStyle || "Arial");
-  const yFontSize = useSelector((state) => state.toolTip.fontSizeY || "12");
+  const yFontSize = useSelector((state) => state.toolTip.fontSizeY || "16");
   const categoryColor = useSelector((state) => state.toolTip.categoryColor);
     const areaColor = useSelector((state) => state.chartColor.BgColor);
   const valueColor = useSelector((state) => state.toolTip.valueColor);
@@ -33,8 +33,74 @@ const D3Chart = ({
   const isValidValueColor = valueColor && !invalidColors.includes(valueColor.toLowerCase());
   const resolvedColor = isValidValueColor ? valueColor : getContrastColor(areaColor|| '#ffffff');
   const isValidcategoryColor = categoryColor && !invalidColors.includes(categoryColor.toLowerCase());
-  
+   const customYAxisValueInput = useSelector((state) => state.toolTip.customYAxisValue);
+    const selectedCurrencyType = useSelector((state) => state.toolTip.currencyType);
   const resolvedcategoryColor= isValidcategoryColor ? categoryColor : getContrastColor(areaColor || '#ffffff');
+  const showDataLabels = useSelector((state) => state.toolTip.showDataLabels);
+  
+  const formatYAxisValue = (value) => {
+    const num = parseFloat(value);
+    if (isNaN(num)) return value;
+
+    // Determine the scaling factor based on customYAxisValueInput
+    let scaleFactor = 1;
+    let suffix = '';
+
+    const customInput = parseFloat(customYAxisValueInput);
+
+    // Prioritize custom input for scaling
+    if (!isNaN(customInput) && customInput > 0) {
+      if (customInput === 1000) {
+        scaleFactor = 1000;
+        suffix = 'K';
+      } else if (customInput === 100000) {
+        scaleFactor = 100000;
+        suffix = 'L';
+      } else if (customInput === 10000000) { // For 1 Cr
+        scaleFactor = 10000000;
+        suffix = 'Cr';
+      } else if (customInput === 1000000) { // For 1 M
+        scaleFactor = 1000000;
+        suffix = 'M';
+      }
+      // If customInput doesn't match predefined scales, it means we might want exact numbers or a different scale
+      // In this case, we don't apply K/L/Cr/M suffix based on customInput unless it explicitly matches.
+      // We'll rely on the default behavior below if no match.
+    }
+
+    if (scaleFactor !== 1) {
+      return (num / scaleFactor).toFixed(1) + suffix;
+    }
+
+    // Default formatting based on value magnitude and selected currency type
+    if (selectedCurrencyType === 'INR') {
+      if (num >= 10000000) return (num / 10000000).toFixed(1) + 'Cr'; // Crores
+      if (num >= 100000) return (num / 100000).toFixed(1) + 'L';     // Lakhs
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';         // Thousands
+    } else { // For USD, EUR, GBP, or 'None'
+      if (num >= 1000000000) return (num / 1000000000).toFixed(1) + 'B'; // Billions
+      if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';     // Millions
+      if (num >= 1000) return (num / 1000).toFixed(1) + 'K';           // Thousands
+    }
+    return num.toLocaleString(); // Fallback for smaller numbers or if no suffix needed
+  };
+
+  // --- Currency Symbol Logic ---
+  const getCurrencySymbol = () => {
+    switch (selectedCurrencyType) {
+      case 'INR':
+        return '₹';
+      case 'USD':
+        return '$';
+      case 'EUR':
+        return '€';
+      case 'GBP':
+        return '£';
+      case 'None':
+      default:
+        return '';
+    }
+  };
   // function getContrastColor(color) {
   //   if (!color) return 'black';
   
@@ -100,26 +166,61 @@ const D3Chart = ({
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    g.append("g")
+    // g.append("g")
+    //   .call(d3.axisTop(x).ticks(5).tickFormat((value) => {
+    //     if (value >= 10000000) return (value / 10000000).toFixed(1) + "M";
+    //     if (value >= 100000) return (value / 100000).toFixed(1) + "L";
+    //     if (value >= 1000) return (value / 1000).toFixed(1) + "K";
+    //     return value;
+    //   }))
+    //   .selectAll("text")
+    //   .attr("transform", "rotate(-45)")
+    //   .style("text-anchor", "start")
+    //   .style("font-size", `${xFontSize}px`)
+    //   .style("font-family", fontStyle)
+    //   .style("fill",  resolvedcategoryColor || "#333");
+      g.append("g")
       .call(d3.axisTop(x).ticks(5).tickFormat((value) => {
-        if (value >= 10000000) return (value / 10000000).toFixed(1) + "M";
-        if (value >= 100000) return (value / 100000).toFixed(1) + "L";
-        if (value >= 1000) return (value / 1000).toFixed(1) + "K";
-        return value;
+        // Apply custom formatting from CustomToolTip's input for X-axis values
+        const formatted = formatYAxisValue(value, customYAxisValueInput, selectedCurrencyType);
+        const symbol = getCurrencySymbol(selectedCurrencyType); // Get currency symbol
+        return symbol ? `${symbol}${formatted}` : formatted;
       }))
       .selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "start")
       .style("font-size", `${xFontSize}px`)
       .style("font-family", fontStyle)
-      .style("fill",  resolvedcategoryColor || "#333");
+      .style("fill", resolvedColor || "#333"); // Use resolvedColor for value axis
+
+// Add Y-axis label (vertical)
+g.append("text")
+  .attr("transform", `rotate(-90)`)
+  .attr("y", -margin.left -38)
+  .attr("x", -adjustedHeight / 2)
+  .attr("dy", "3em")
+  .style("text-anchor", "middle")
+  .style("font-size", `${xFontSize}px`)
+  .style("font-family", fontStyle)
+  .style("fill", resolvedcategoryColor || "#333")
+  .text(xAxis?.[0] || "X Axis");
+
+// Add X-axis label (horizontal)
+g.append("text")
+  .attr("x", adjustedWidth / 2)
+  .attr("y", -margin.top + 11) // Since x-axis is at the top
+  .style("text-anchor", "middle")
+  .style("font-size", `${xFontSize}px`)
+  .style("font-family", fontStyle)
+  .style("fill", resolvedcategoryColor || "#333")
+   .text(yAxis || "Y Axis");
 
     g.append("g")
       .call(d3.axisLeft(y).tickSizeOuter(0))
       .selectAll("text")
       .text((d) => (d.length > 10 ? d.substring(0, 9) + "..." : d))
       .style("font-size", `${yFontSize}px`)
-      .style("fill", resolvedcategoryColor || "#333")
+      .style("fill", resolvedColor || "#333")
       .style("font-family", fontStyle);
 
     const safeColors = (!barColor || barColor.length < sortedData.length
@@ -212,18 +313,44 @@ const D3Chart = ({
   const tooltipX = event.clientX - containerBounds.left + 10;
   const tooltipY = event.clientY - containerBounds.top - 10;
 
-  d3.select(tooltipRef.current)
-    .style("opacity", 1)
-    .style("top", `${tooltipY}px`)
-    .style("left", `${tooltipX}px`)
-    .html(`
-      ${toolTipOptions.heading ? `<div style="font-weight: bold; margin-bottom: 4px;"><h4>${currentAggregation} of ${currentXAxis} vs ${currentYAxis}</h4></div>` : ""}
-      <div>
-        ${toolTipOptions.categoryName ? `<div><strong>Category:</strong> ${category}</div>` : ""}
-        ${toolTipOptions.value ? `<div><strong>Value:</strong> ${value}</div>` : ""}
-      </div>
-    `)
-    .attr("class", "tooltiphierarchy visible");
+  // d3.select(tooltipRef.current)
+  //   .style("opacity", 1)
+  //   .style("top", `${tooltipY}px`)
+  //   .style("left", `${tooltipX}px`)
+  //   .html(`
+  //     ${toolTipOptions.heading ? `<div style="font-weight: bold; margin-bottom: 4px;"><h4>${currentAggregation} of ${currentXAxis} vs ${currentYAxis}</h4></div>` : ""}
+  //     <div>
+  //       ${toolTipOptions.categoryName ? `<div><strong>Category:</strong> ${category}</div>` : ""}
+  //       ${toolTipOptions.value ? `<div><strong>Value:</strong> ${value}</div>` : ""}
+  //     </div>
+  //   `)
+  //   .attr("class", "tooltiphierarchy visible");
+
+   let tooltipContent = '';
+        const hasCustomTooltip = toolTipOptions.heading || toolTipOptions.categoryName || toolTipOptions.value;
+
+        if (hasCustomTooltip) {
+          tooltipContent = `
+            ${toolTipOptions.heading ? `<div style="font-weight: bold; margin-bottom: 4px;"><h4>${currentAggregation} of ${currentXAxis} vs ${currentYAxis}</h4></div>` : ""}
+            <div>
+              ${toolTipOptions.categoryName ? `<div><strong>Category:</strong> ${category}</div>` : ""}
+              ${toolTipOptions.value ? `<div><strong>Value:</strong> ${value}</div>` : ""}
+            </div>
+          `;
+        } else {
+          // Default tooltip content
+          tooltipContent = `
+            <div><strong>Category:</strong> ${category}</div>
+            <div><strong>Value:</strong> ${value}</div>
+          `;
+        }
+
+        d3.select(tooltipRef.current)
+          .style("opacity", 1)
+          .style("top", `${tooltipY}px`)
+          .style("left", `${tooltipX}px`)
+          .html(tooltipContent)
+          .attr("class", "tooltiphierarchy visible");
 
   const barFillColor = safeColors[categoryIndex % safeColors.length];
   try {
@@ -252,7 +379,23 @@ const D3Chart = ({
         handleDrillUp();
       }
     });
-
+if (showDataLabels) {
+  g.selectAll(".bar-label")
+    .data(sortedData, d => d.category)
+    .join("text")
+    .attr("class", "bar-label")
+    .attr("x", d => x(d.value) + 5) // Position slightly after bar
+    .attr("y", d => y(d.category) + y.bandwidth() / 2)
+    .attr("dy", "0.35em")
+    .style("font-size", `${yFontSize}px`)
+    .style("font-family", fontStyle)
+    .style("fill", resolvedColor || "#333")
+    .text(d => {
+      const formatted = formatYAxisValue(d.value);
+      const symbol = getCurrencySymbol(selectedCurrencyType);
+      return symbol ? `${symbol}${formatted}` : formatted;
+    });
+}
     // const zoom = d3.zoom()
     //   .scaleExtent([0.5, 3])
     //   .on("zoom", (event) => {
@@ -297,12 +440,13 @@ const D3Chart = ({
     return () => {
       svg.on(".zoom", null);
     };
+    
 
 
   }, [
     chartData, sortedData, barColor, zoomTransform, chartDimensions,
     xFontSize, fontStyle, yFontSize, categoryColor, valueColor,
-    toolTipOptions, xAxis, yAxis, aggregation, handleClicked, handleDrillUp
+    toolTipOptions, xAxis, yAxis, aggregation, handleClicked, handleDrillUp,showDataLabels
   ]);
 
   return (

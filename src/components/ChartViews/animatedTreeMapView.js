@@ -25,7 +25,7 @@ const isValidcategoryColor = categoryColor && !invalidColors.includes(categoryCo
 const resolvedcategoryColor= isValidcategoryColor ? categoryColor : getContrastColor(chartColor || '#ffffff');
 const validatedOpacity = typeof opacity === 'number' && opacity >= 0 && opacity <= 1 ? opacity : 1;
 
-
+ const showDataLabels = useSelector((state) => state.viewdashboard.showDataLabels);
 
 console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'white'
 
@@ -243,7 +243,7 @@ const charts = useSelector((state) => state.viewdashboard.dashboard_charts);
   .attr("opacity", validatedOpacity);  // ✅ maintain via attr
 
 
-
+if (showDataLabels) {
         nodes.append("text")
             .attr("x", 5)
             .attr("y", 15)
@@ -252,6 +252,7 @@ const charts = useSelector((state) => state.viewdashboard.dashboard_charts);
                 const brightness = bgColor.r * 0.299 + bgColor.g * 0.587 + bgColor.b * 0.114;
                 return brightness > 110 ? "#000000" : "#FFFFFF";
             })
+            
             .style("font-size", d => {
                 const availableWidth = d.x1 - d.x0;
                 const availableHeight = d.y1 - d.y0;
@@ -280,12 +281,16 @@ const charts = useSelector((state) => state.viewdashboard.dashboard_charts);
                             .text(word);
                     }
                 }
+                
             })
+
+        
             .transition()
             .duration(4000)
             .style("opacity", validatedOpacity);
-
-    }, [categories, values, chartColor, boxSize, ClickedTool,validatedOpacity]);
+            
+        }
+    }, [categories, values, chartColor, boxSize, ClickedTool,validatedOpacity, showDataLabels]);
 
     return (
         <div

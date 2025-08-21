@@ -28,6 +28,9 @@ import India from'./charts/indiaMapChart';
 import Tablechart from './charts/tableChart';
 import BubbleChart from './charts/bubbleChart';
 import TrendChart from './charts/TrendChart';
+import StackedBarChart  from './charts/stackedBarChart';
+import MeterGaugeChart from './charts/meterGaugeChart';
+import FunnelChart from './charts/funnelChart';
 const Items = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
   ...theme.typography.body2,
@@ -58,6 +61,24 @@ const ChartDisplay = React.memo(({ xAxis, yAxis, chartType, plotData, handleSave
           </div>
         </div>
       ) : null}
+       {      (xAxis.length === 1 && yAxis.length === 1 && chartType === "funnel") ? (
+        <div style={{ marginTop: '20px' }}>
+          {xAxis.length >= 2 && (
+            <div className="error-message">
+              You have selected more than 2 Column values. Please remove 1.
+            </div>
+          )}
+          <Items>
+            <div className="chart-container">
+              <FunnelChart categories={plotData?.categories} values={plotData?.values} aggregation={plotData?.aggregation} />
+            </div>
+          </Items>
+          <div className="btn-container">
+            <button className="save-button" onClick={handleSaveButtonClick}>Save Chart</button>
+          </div>
+        </div>
+      ) : null}
+
 
 {
       (xAxis.length === 1 && yAxis.length === 1 && chartType === "pie") ? (
@@ -286,7 +307,7 @@ const ChartDisplay = React.memo(({ xAxis, yAxis, chartType, plotData, handleSave
 
 
 {
-      (xAxis.length > 0 && chartType === "hierarchialBarChart") ? (
+      (xAxis.length >= 0 &&  yAxis.length === 1 && chartType === "hierarchialBarChart") ? (
         <div style={{ marginTop: '20px' }}>
           <Items>
             <div className="chart-container">
@@ -367,11 +388,29 @@ const ChartDisplay = React.memo(({ xAxis, yAxis, chartType, plotData, handleSave
         ) : null}
       
 {
-      (xAxis.length >=2 &&yAxis.length >= 1&& chartType === "duealbarChart") ? (
+      (xAxis.length == 2 &&yAxis.length == 1&& chartType === "duealbarChart") ? (
         <div style={{ marginTop: '20px' }}>
           <Items>
             <div className="chart-container">
             <DuelBarChart
+                categories={plotData?.categories}
+                series1={plotData?.series1}
+                series2={plotData?.series2}
+                aggregation={plotData?.aggregation}
+              />
+            </div>
+          </Items>
+          <div className="btn-container">
+            <button className="save-button" onClick={handleSaveButtonClick}>Save Chart</button>
+          </div>
+        </div>
+      ) : null}
+      {
+      (xAxis.length ===2 &&yAxis.length >= 1&& chartType === "stackedbar") ? (
+        <div style={{ marginTop: '20px' }}>
+          <Items>
+            <div className="chart-container">
+            <StackedBarChart
                 categories={plotData?.categories}
                 series1={plotData?.series1}
                 series2={plotData?.series2}
@@ -464,6 +503,11 @@ const ChartDisplay = React.memo(({ xAxis, yAxis, chartType, plotData, handleSave
           </div>
         </div>
       ) : null}
+
+
+      
+
+
       {
         (xAxis.length >= 1 && yAxis.length === 1 && chartType === "TamiNadu_Map_Chart") ? (
 <div style={{ marginTop: '20px' }}>
@@ -500,6 +544,22 @@ const ChartDisplay = React.memo(({ xAxis, yAxis, chartType, plotData, handleSave
 </div>
 </div>
         ) : null}
+        {
+      (xAxis.length > 0 && chartType === "meterGauge") ? (
+        <div style={{ marginTop: '20px' }}>
+          <Items>
+            <div className="chart-container">
+            <MeterGaugeChart categories={plotData?.categories} values={plotData?.values} aggregation={plotData?.aggregation} />
+            </div>
+          </Items>
+          <div className="btn-container">
+            <button className="save-button" onClick={handleSaveButtonClick}>Save Chart</button>
+          </div>
+        </div>
+      ) : null}
+
+
+
 
 
 

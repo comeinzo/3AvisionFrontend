@@ -235,6 +235,8 @@ try {
         text: x_axis,
         style: {
           fontFamily: fontStyle,
+          color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                             
         },
       },
       labels: {

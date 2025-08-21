@@ -27,121 +27,121 @@ import India_Map_Chart from '../ChartViews/IndiaMapChartView.js';
 import { Rnd } from "react-rnd";
 import BubbleChart from '../ChartViews/bubbleChartView.js';
 import TableChart from '../ChartViews/tableChartView.js';
-
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import IconButton from '@mui/material/IconButton';
 import TrendChart from '../ChartViews/TrendChartView.js';
-
-const DroppableArea = () => {
+import StackedBarChart from '../ChartViews/stackekBarView.js';
+import MeterGaugeChart from '../ChartViews/meterGaugeChartView.js';
+import {
+  Typography
+} from "@mui/material";
+const DroppableArea = ({ setViewMode }) => {
   const droppableAreaRef = useRef(null);
   const chartdata = useSelector((state) => state.viewdashboard.dashboard_charts);
 const droppableBgColor = useSelector((state) => state.viewdashboard.droppableBgColor);
   console.log('chartdata', chartdata);
   const fontStyle = useSelector((state) => state.barColor.fontStyle);
   const imagePositions = useSelector((state) => state.viewdashboard.imagePositions);
-
+const dashboardHeading= useSelector((state) => state.viewdashboard.DashboardHeading);
   useEffect(() => {
     console.log('chartdata', chartdata);
   }, [chartdata]);
+  const fontStyleState = useSelector((state) => state.viewdashboard.fontStyleState) || 'normal';
+  const fontColor = useSelector((state) => state.viewdashboard.fontColor) || 'black';
+  const fontSize = useSelector((state) => state.viewdashboard.fontSize) || '32';
+  console.log("DASHBOARD HEADING colour ===>", fontColor);
+
+  console.log("DASHBOARD HEADING style ===>", fontStyleState);
+
+  console.log("DASHBOARD HEADING size ===>", fontSize);
+
+console.log("DASHBOARD HEADING VALUE ===>", dashboardHeading);
 
   return (
-    // <div
-    //   ref={(node) => { droppableAreaRef.current = node; }}
-    //   style={{
-    //     position: 'relative',
-    //     backgroundColor: droppableBgColor,
-    //     padding: '10px',
-    //     border: '1px solid #ccc',
-    //     minHeight: '80vh',
-    //     display: 'flex',
-    //     flexWrap: 'wrap',
-    //     gap: '10px',
-    //     overflow: 'auto',
-    //     marginTop: '0px'
-    //   }}
-  //   <div
-  // ref={(node) => { droppableAreaRef.current = node; }}
-  // style={{
-  //   backgroundColor: droppableBgColor,
-  //   padding: '1px',
-  //   // border: '1px solid #ccc',
-  //   minHeight: '100vh',
-  //   display: 'grid',
-  //   gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-  //   gap: '16px',
-  //   overflowY: 'auto',
-  //   marginTop: '0px',
-    
-  // }}
+  
+//   <div
+//   ref={droppableAreaRef}
 
-  // <div
-  //     ref={(node) => {
-  //       droppableAreaRef.current = node;
-  //     }}
-  //     style={{
-  //       position: 'relative',
-  //       overflowY: "auto",
-  //       backgroundColor: droppableBgColor,
-  //       padding: '10px',
-  //       border: '1px solid #ccc',
-  //       minHeight: '80vh',
-  //       display: 'flex',
-  //       flexWrap: 'wrap',
-  //       gap: '10px',
-  //       overflow: 'none',
-  //       marginTop: '0px',
-  //       fontFamily:fontStyle
-  //     }}
-  //   >
-  <div
-  ref={droppableAreaRef}
-  // style={{
-  //   backgroundColor: droppableBgColor,
-  //   padding: '5px',
-  //   display: 'flex',
-  //   flexWrap: 'wrap',
-  //   gap: '8px',
-  //   overflowY: 'auto',
-  //   minHeight: 'calc(88vh -  64px)', // adjust based on your layout
-  //   fontFamily: fontStyle,
-  //   overflowY: "auto",   paddingBottom: '100px',
-  // }}
-//    style={{
-//         position: 'relative',
-//         // overflowY: "auto",
-//         backgroundColor: droppableBgColor,
-//         padding: '10px',
-//         border: '1px solid #ccc',
-//        height: "calc(100vh - 200px)",
-//         display: 'flex',
-//         flexWrap: 'wrap',
-//         gap: '10px',
-//         overflow: 'auto',
-//         marginTop: '0px',
-//         width: "100%",  // Reduced width (or use "900px")
-//   maxWidth: "10000px", // Optional
-//         fontFamily:fontStyle
-//       }}
+// style={{
+//   position: 'relative',
+//   backgroundColor: droppableBgColor,
+//   padding: '10px',
+//   display: 'grid',
+//   // gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
+//   gap: '12px',
+//   width: '100%',
+//   height: 'calc(100vh - 200px)',
+//   fontFamily: fontStyle,
+//   overflow: 'hidden', // 🔥 Prevents scrollbar
+//   border: '1px solid #ccc',
+//   boxSizing: 'border-box',
+//   marginTop: '2px',
+// }}
 // >
-style={{
-  position: 'relative',
-  backgroundColor: droppableBgColor,
-  padding: '10px',
-  display: 'grid',
-  // gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-  gap: '12px',
-  width: '100%',
-  height: 'calc(100vh - 200px)',
-  fontFamily: fontStyle,
-  overflow: 'hidden', // 🔥 Prevents scrollbar
-  border: '1px solid #ccc',
-  boxSizing: 'border-box',
-  marginTop: '2px',
-}}
+<>
+  {dashboardHeading && (
+    <div style={{ width: '100%', padding: '10px', backgroundColor: droppableBgColor || '#f8f8f8', }}>
+      {/* <Typography variant="h5" sx={{ fontFamily: fontStyle || 'Arial', textAlign: 'center', color: 'black', }}>
+        {dashboardHeading}
+      </Typography> */}
+       <Typography
+                variant="h4"
+                sx={{
+                  
+                  fontSize,
+                  fontStyle: fontStyleState.includes('italic') ? 'italic' : 'normal',
+                  fontWeight: fontStyleState.includes('bold') ? 'bold' : 'normal',
+                  textDecoration: fontStyleState.includes('underline') ? 'underline' : 'none',
+                  color: fontColor,textAlign: 'center'
+                }}
+              >
+                {dashboardHeading}
+              </Typography>
+    </div>
+  )}
+<div
+  ref={droppableAreaRef}
+  style={{
+    position: 'relative',
+    backgroundColor: droppableBgColor || '#f8f8f8',
+    padding: '16px',
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '20px',
+    width: '100%',
+    height: 'calc(100vh - 200px)',
+    fontFamily: fontStyle || 'Segoe UI, sans-serif',
+    overflowY: 'auto',
+    // border: '1px solid #ccc',
+    // borderRadius: '2px',
+    boxSizing: 'border-box',
+    scrollbarColor: '#ccc transparent',
+    scrollbarWidth: 'thin',
+  }}
 >
+
+<IconButton
+  onClick={() => setViewMode("projects")}
+  sx={{
+     position: 'fixed',
+     top: 160,
+    left: 16,
+      zIndex: 1500,
+    backgroundColor: '#fff',
+    boxShadow: 2,
+    '&:hover': {
+      backgroundColor: '#f0f0f0',
+    },
+  }}
+>
+  <ArrowBackIcon  color="primary"/>
+</IconButton>
 
     
       {chartdata && chartdata.length > 0 ? (
         chartdata.map((chart, index) => {
         const chartReport = generateChartReport(chart);
+        console.log("chart",chart)
 console.log("chartColor",chart.chart_color)
           return (
           // <div
@@ -191,7 +191,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -217,7 +217,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -241,7 +241,7 @@ disableDragging={true}
                  y_axis={chart.y_axis}
                  aggregation={chart.aggregate} 
                  xFontSize={chart.xfontsize} 
-                 fontStyle={chart.fontStyle} 
+                 fontStyle={chart.fontstyle} 
                  categoryColor={chart.categorycolor}
                   yFontSize={chart.yfontsize} 
                   valueColor={chart.valuecolor} 
@@ -264,7 +264,7 @@ disableDragging={true}
                  y_axis={chart.y_axis}
                  aggregation={chart.aggregate} 
                  xFontSize={chart.xfontsize} 
-                 fontStyle={chart.fontStyle} 
+                 fontStyle={chart.fontstyle} 
                  categoryColor={chart.categorycolor}
                   yFontSize={chart.yfontsize} 
                   valueColor={chart.valuecolor} 
@@ -286,7 +286,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -312,7 +312,7 @@ disableDragging={true}
                  y_axis={chart.y_axis}
                  aggregation={chart.aggregate} 
                  xFontSize={chart.xfontsize} 
-                 fontStyle={chart.fontStyle} 
+                 fontStyle={chart.fontstyle} 
                  categoryColor={chart.categorycolor}
                   yFontSize={chart.yfontsize} 
                   valueColor={chart.valuecolor} 
@@ -335,7 +335,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -359,7 +359,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -396,7 +396,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -417,7 +417,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -438,7 +438,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -459,7 +459,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -486,7 +486,7 @@ disableDragging={true}
                   y_axis2={chart.y_axis[1]}
                   chartColor={chart.chart_color}
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -510,7 +510,31 @@ disableDragging={true}
                  y_axis={chart.y_axis}
                  aggregation={chart.aggregate} 
                  xFontSize={chart.xfontsize} 
-                 fontStyle={chart.fontStyle} 
+                 fontStyle={chart.fontstyle} 
+                 categoryColor={chart.categorycolor}
+                  yFontSize={chart.yfontsize} 
+                  valueColor={chart.valuecolor} 
+                  customHeadings={chart.chart_heading} 
+                 width={chart.size?.width}
+                 height={chart.size?.height}
+                 headingColor={chart.headingColor}
+                 ClickedTool={chart.ClickedTool}
+                 areaColor={chart.Bgcolour}
+                  opacity={chart.opacity}
+                   calculationData={chart.calculationData}
+                />
+              )}
+               {chart.chart_type === 'stackedbar' && (
+                <StackedBarChart
+                  categories={chart.categories} 
+                  series1={chart.series1}
+                  series2={chart.series2}
+                  chartColor={chart.chart_color}
+                  x_axis={chart.x_axis}
+                 y_axis={chart.y_axis}
+                 aggregation={chart.aggregate} 
+                 xFontSize={chart.xfontsize} 
+                 fontStyle={chart.fontstyle} 
                  categoryColor={chart.categorycolor}
                   yFontSize={chart.yfontsize} 
                   valueColor={chart.valuecolor} 
@@ -533,7 +557,7 @@ disableDragging={true}
                y_axis={chart.y_axis}
                aggregation={chart.aggregate} 
                xFontSize={chart.xfontsize} 
-               fontStyle={chart.fontStyle} 
+               fontStyle={chart.fontstyle} 
                categoryColor={chart.categorycolor}
                 yFontSize={chart.yfontsize} 
                 valueColor={chart.valuecolor} 
@@ -579,6 +603,23 @@ disableDragging={true}
                 // minHeight={minHeight}
                 />
               )}
+              {chart.chart_type === 'meterGauge' && (
+                <MeterGaugeChart
+                // width={width}
+                heading={chart.chart_heading}
+                result={chart.value.total_x_axis}
+                fetchedData={chart.value}
+                width={chart.size?.width}
+                height={chart.size?.height}
+                headingColor={chart.headingColor}
+                
+                areaColor={chart.Bgcolour}
+                chartColor={chart.chart_color}
+                // handleResize={handleResize}
+                // minWidth={minWidth}
+                // minHeight={minHeight}
+                />
+              )}
               {chart.chart_type === 'wordCloud' && (
                 <WordCloud
                 categories={chart.categories}
@@ -588,7 +629,7 @@ disableDragging={true}
                y_axis={chart.y_axis}
                aggregation={chart.aggregate} 
                xFontSize={chart.xfontsize} 
-               fontStyle={chart.fontStyle} 
+               fontStyle={chart.fontstyle} 
                categoryColor={chart.categorycolor}
                 yFontSize={chart.yfontsize} 
                 valueColor={chart.valuecolor} 
@@ -609,7 +650,7 @@ disableDragging={true}
                y_axis={chart.y_axis}
                aggregation={chart.aggregate} 
                xFontSize={chart.xfontsize} 
-               fontStyle={chart.fontStyle} 
+               fontStyle={chart.fontstyle} 
                categoryColor={chart.categorycolor}
                 yFontSize={chart.yfontsize} 
                 valueColor={chart.valuecolor} 
@@ -629,7 +670,7 @@ disableDragging={true}
                y_axis={chart.y_axis}
                aggregation={chart.aggregate} 
                xFontSize={chart.xfontsize} 
-               fontStyle={chart.fontStyle} 
+               fontStyle={chart.fontstyle} 
                categoryColor={chart.categorycolor}
                 yFontSize={chart.yfontsize} 
                 valueColor={chart.valuecolor} 
@@ -654,7 +695,7 @@ disableDragging={true}
                   y_axis2={chart.y_axis[1]}
                   chartColor={chart.chart_color}
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -676,7 +717,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -699,7 +740,7 @@ disableDragging={true}
                   y_axis={chart.y_axis}
                   aggregation={chart.aggregate} 
                   xFontSize={chart.xfontsize} 
-                  fontStyle={chart.fontStyle} 
+                  fontStyle={chart.fontstyle} 
                   categoryColor={chart.categorycolor}
                    yFontSize={chart.yfontsize} 
                    valueColor={chart.valuecolor} 
@@ -720,7 +761,25 @@ disableDragging={true}
           );
         })
       ) : (
-        <p>No charts available</p>
+        // <p>No charts available</p>
+  
+    <div
+    style={{
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      textAlign: 'center',
+      color: '#666',
+      maxWidth: '90%',
+    }}
+  >
+    <Typography variant="h6" sx={{ mb: 2, fontFamily: fontStyle }}>
+      No charts available
+    </Typography>
+   
+  </div>
+
       )}
       {/* {imagePositions && imagePositions.length > 0 &&
   imagePositions.map((img, index) => (
@@ -778,6 +837,7 @@ disableDragging={true}
 
       
     </div>
+    </>
   );
 };
 

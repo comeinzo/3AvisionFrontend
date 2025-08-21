@@ -24,6 +24,8 @@ import India_Map_Chart from '../ChartViews/IndiaMapChartView.js';
 import BubbleChart  from '../ChartViews/bubbleChartView.js';
 import TableChart from '../ChartViews/tableChartView.js';
 import TrendChart from '../ChartViews/TrendChartView.js';
+import StackedBarChart from '../ChartViews/stackekBarView.js';
+import MeterGaugeChart from '../ChartViews/meterGaugeChartView.js';
 const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
   console.log("areaColor",chart.Bgcolour)
   console.log("chartColor",chart.chartColor)
@@ -38,7 +40,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -63,7 +65,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -88,7 +90,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -112,7 +114,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -135,7 +137,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -160,7 +162,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -183,7 +185,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -207,7 +209,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -236,7 +238,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -258,7 +260,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -280,7 +282,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
             y_axis={chart.y_axis}
             aggregation={chart.aggregate}
             xFontSize={chart.xfontsize}
-            fontStyle={chart.fontStyle}
+            fontStyle={chart.fontstyle} 
             categoryColor={chart.categorycolor}
             yFontSize={chart.yfontsize}
             valueColor={chart.valuecolor}
@@ -302,7 +304,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -328,7 +330,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis2={chart.y_axis2}
           chartColor={chart.chart_color}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -353,7 +355,32 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
+          categoryColor={chart.categorycolor}
+          yFontSize={chart.yfontsize}
+          valueColor={chart.valuecolor}
+          customHeadings={chart.chart_heading}
+          width={initialWidth}
+          height={initialHeight}
+          headingColor={chart.headingColor}
+          ClickedTool={chart.ClickedTool}
+          areaColor={chart.Bgcolour}
+          disableInteraction={true}
+          opacity={chart.opacity}
+        />
+      );
+      case 'stackedbar':
+      return (
+        <StackedBarChart
+          categories={chart.categories}
+          series1={chart.series1}
+          series2={chart.series2}
+          chartColor={chart.chart_color}
+          x_axis={chart.x_axis}
+          y_axis={chart.y_axis}
+          aggregation={chart.aggregate}
+          xFontSize={chart.xfontsize}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -378,7 +405,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -402,7 +429,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -430,6 +457,20 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           
         />
       );
+        case 'meterGauge':
+      return (
+        <MeterGaugeChart
+          heading={chart.chart_heading}
+          result={chart.value.total_x_axis}
+          fetchedData={chart.value}
+          width={initialWidth}
+          height={initialHeight}
+          headingColor={chart.headingColor}
+          areaColor={chart.Bgcolour}
+          chartColor={chart.chart_color}
+          
+        />
+      );
     case 'wordCloud':
       return (
         <WordCloud
@@ -440,7 +481,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis={chart.y_axis}
           aggregation={chart.aggregate}
           xFontSize={chart.xfontsize}
-          fontStyle={chart.fontStyle}
+          fontStyle={chart.fontstyle} 
           categoryColor={chart.categorycolor}
           yFontSize={chart.yfontsize}
           valueColor={chart.valuecolor}
@@ -466,7 +507,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
           y_axis2={chart.y_axis[1]}
           chartColor={chart.chart_color}
           xFontSize={chart.xfontsize} 
-          fontStyle={chart.fontStyle} 
+          fontStyle={chart.fontstyle}  
           categoryColor={chart.categorycolor}
            yFontSize={chart.yfontsize} 
            valueColor={chart.valuecolor} 
@@ -488,7 +529,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
         y_axis={chart.y_axis}
         aggregation={chart.aggregate}
         xFontSize={chart.xfontsize}
-        fontStyle={chart.fontStyle}
+        fontStyle={chart.fontstyle} 
         categoryColor={chart.categorycolor}
         yFontSize={chart.yfontsize}
         valueColor={chart.valuecolor}
@@ -512,7 +553,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
         y_axis={chart.y_axis}
         aggregation={chart.aggregate}
         xFontSize={chart.xfontsize}
-        fontStyle={chart.fontStyle}
+        fontStyle={chart.fontstyle} 
         categoryColor={chart.categorycolor}
         yFontSize={chart.yfontsize}
         valueColor={chart.valuecolor}
@@ -536,7 +577,7 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
         y_axis={chart.y_axis}
         aggregation={chart.aggregate}
         xFontSize={chart.xfontsize}
-        fontStyle={chart.fontStyle}
+        fontStyle={chart.fontstyle} 
         categoryColor={chart.categorycolor}
         yFontSize={chart.yfontsize}
         valueColor={chart.valuecolor}

@@ -331,6 +331,7 @@ const [isMenuVisible, setIsMenuVisible] = useState(false);
   const customHeadings = Headings?.replace(/['"\\]/g, "") || "";
   const headingColor = useSelector((state) => state.toolTip.headingColor) || "#202124";
   const areaColor = useSelector((state) => state.chartColor.BgColor) || "#ffffff";
+const showDataLabels = useSelector((state) => state.toolTip.showDataLabels);
 
     const [legendPosition, setLegendPosition] = useState("right");
     const chartColor = useSelector((state) => state.chartColor.chartColor||"#2196f3");
@@ -489,7 +490,7 @@ setSeriesColors(newBarColors);
   // }, [sortedCategories, sortedValues]);
   useEffect(() => {
   drawBubbleChart();
-}, [sortedCategories, sortedValues, seriesColors]); // <--- Add this
+}, [sortedCategories, sortedValues, seriesColors,showDataLabels]); // <--- Add this
 
 
   const drawBubbleChart = () => {
@@ -549,7 +550,7 @@ setSeriesColors(newBarColors);
       .on("mouseout", () => {
         tooltipRef.current.style.visibility = "hidden";
       });
-
+if(showDataLabels) {
     // Label: Name
     bubble
       .append("text")
@@ -603,7 +604,7 @@ setSeriesColors(newBarColors);
 
     return formatValue(value);
   });
-
+  }
   };
 
   // 🔽 Handlers
@@ -657,20 +658,20 @@ setSeriesColors(newBarColors);
         setIsMenuVisible(!isMenuVisible);
     };
  const toolbarTools = [
-        {
-            icon: <button style={{background:'none',border:'none',color:'#007bff',fontsize:'14px'}}>⇧</button>,
-            index: 1,
-            title: 'Sort Ascending',
-            class: 'custom-sort-ascending',
-            click: handleSortAscending
-          },
-          {
-            icon: <button style={{background:'none',border:'none',color:'#007bff',fontsize:'14px'}}>⇩</button>,
-            index: 2,
-            title: 'Sort Descending',
-            class: 'custom-sort-descending',
-            click: handleSortDescending
-          },
+        // {
+        //     icon: <button style={{background:'none',border:'none',color:'#007bff',fontsize:'14px'}}>⇧</button>,
+        //     index: 1,
+        //     title: 'Sort Ascending',
+        //     class: 'custom-sort-ascending',
+        //     click: handleSortAscending
+        //   },
+        //   {
+        //     icon: <button style={{background:'none',border:'none',color:'#007bff',fontsize:'14px'}}>⇩</button>,
+        //     index: 2,
+        //     title: 'Sort Descending',
+        //     class: 'custom-sort-descending',
+        //     click: handleSortDescending
+        //   },
         { 
             icon: <button style={{ background: 'none', border: 'none', color: '#28a745', fontSize: '14px' }}>⏶</button>, 
             title: 'Show Top 10', 
@@ -728,14 +729,15 @@ const renderLegend = () => {
 
   const isVerticalLegend = legendPosition === "left" || legendPosition === "right";
   const legendStyle = {
-    display: 'flex',
+    display:isVerticalLegend? "flex-start" : "flex",
     gap: '10px',
     flexWrap: 'wrap',
     margin: '10px',
     justifyContent:
       legendPosition === "top" || legendPosition === "bottom" ? "center" : "flex-start",
    flexDirection: isVerticalLegend ? "column" : "row",
-    alignItems: 'center',
+    // alignItems: 'center',
+    alignItems: isVerticalLegend ? "flex-start" : "center",
     order: legendPosition === "bottom" ? 2 : 0,
        maxHeight: isVerticalLegend && sortedCategories.length > 10 ? "300px" : "auto",
     overflowY: isVerticalLegend && sortedCategories.length > 10 ? "auto" : "visible",

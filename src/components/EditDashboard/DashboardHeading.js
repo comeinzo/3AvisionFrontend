@@ -6,7 +6,7 @@ import {
   Box, Typography, Modal, Button, Select, MenuItem,
   FormControl, InputLabel, TextField, IconButton, Slider, Tooltip
 } from "@mui/material";
-
+import TitleIcon from '@mui/icons-material/Title';
 import {
   Edit, Palette, Add, Image, Delete,
   PhotoCameraBack, RestartAlt, SwapHoriz
@@ -40,7 +40,8 @@ const DashboardHeading = ({
   const [activeButton, setActiveButton] = useState("");
   const sketchRef = useRef(null);
   const colorInputRef = useRef(null);
-
+    const chartPositions = useSelector(state => state.EditDashboard.chartPositions);
+const hasContent = Array.isArray(chartPositions) ? chartPositions.length > 0 : chartPositions !== '';
   const isChartSelected = selectedChartIndex !== null;
   const isImageSelected = selectedImageId !== null;
 
@@ -103,13 +104,16 @@ useEffect(() => {
         bgcolor: 'white'
       }}
     >
+       
       {/* Left Section: All icons */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+         {hasContent &&(
         <Tooltip title="Edit Heading">
           <IconButton onClick={handleOpen}>
-            <Edit sx={{ fontSize: 20, strokeWidth: 0.5}} />
+            <TitleIcon sx={{ fontSize: 20, strokeWidth: 0.5}} />
           </IconButton>
         </Tooltip>
+         )}
 
 {/*        
 <Tooltip title="Change Background Color">
@@ -145,6 +149,7 @@ useEffect(() => {
   }}
 /> */}
        </Box>
+      
       <Box
         sx={{
           position: 'absolute',

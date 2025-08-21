@@ -36,6 +36,15 @@ const checkedOptions = useSelector(state => state.chartdata.checkedOptions[colum
 const reduxCheckedOptions = useSelector(state => state.chartdata.checkedOptions); // Get from Redux
 console.log("reduxCheckedOptions",reduxCheckedOptions)
 const [plotData, setPlotData] = useState({});
+
+
+const cleanFilterOptions = Object.entries(reduxCheckedOptions)
+  .filter(([key]) => key !== "undefined")
+  .reduce((acc, [key, value]) => {
+    acc[key] = value;
+    return acc;
+  }, {});
+
   const generateChart = async () => {
     
     try {
@@ -45,7 +54,7 @@ const [plotData, setPlotData] = useState({});
         yAxis,
         aggregate,
         chartType,
-        filterOptions:reduxCheckedOptions,
+        filterOptions:cleanFilterOptions,
         databaseName,
         selectedUser,
         xFontSize,
@@ -95,17 +104,28 @@ const fetchFilterOptions = async (column) => {
 
       console.log("Parsed options:", options);
 
+      // if (options && typeof options === "object" && Array.isArray(options[column])) {
+      //     console.log("Final Filter Options:", options[column]);
+
+      //     dispatch(setFilterOptionsForColumn({ column, options: options[column] || [] }));
+      //     console.log(`Dispatched setFilterOptionsForColumn for ${column}:`, options[column]);
+
+      //     dispatch(setCheckedOptionsForColumn({ column, options: reduxCheckedOptions[column] }));
+      //     console.log(`Dispatched setCheckedOptionsForColumn for ${column}:`, options[column]);
+
+      //     dispatch(setSelectAllCheckedForColumn({ column, isChecked: true }));
+      //     console.log(`Dispatched setSelectAllCheckedForColumn for ${column}: false`);
       if (options && typeof options === "object" && Array.isArray(options[column])) {
-          console.log("Final Filter Options:", options[column]);
+    console.log("Final Filter Options:", options[column]);
 
-          dispatch(setFilterOptionsForColumn({ column, options: options[column] || [] }));
-          console.log(`Dispatched setFilterOptionsForColumn for ${column}:`, options[column]);
+    // Set filter options
+    dispatch(setFilterOptionsForColumn({ column, options: options[column] || [] }));
 
-          dispatch(setCheckedOptionsForColumn({ column, options: reduxCheckedOptions[column] }));
-          console.log(`Dispatched setCheckedOptionsForColumn for ${column}:`, options[column]);
+    // FIX: Set checked options from the same freshly fetched array
+    dispatch(setCheckedOptionsForColumn({ column, options: options[column] || [] }));
 
-          dispatch(setSelectAllCheckedForColumn({ column, isChecked: true }));
-          console.log(`Dispatched setSelectAllCheckedForColumn for ${column}: false`);
+    dispatch(setSelectAllCheckedForColumn({ column, isChecked: true }));
+
     
       } else {
           console.error('Filter options is not an object or does not contain an array for the expected column:', options);

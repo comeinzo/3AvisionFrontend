@@ -435,7 +435,8 @@ return (
           style={{
             textAlign: 'center',
             color: headingColor,
-            fontFamily: fontStyle,
+            fontFamily: `"${fontStyle}"`,
+
             fontSize: '20px',
             fontWeight: 600,
             marginBottom: '16px',
@@ -459,7 +460,8 @@ return (
           borderCollapse: 'collapse',
           minWidth: '900px',
           width: '100%',
-          fontFamily: fontStyle,
+          fontFamily: `"${fontStyle}"`,
+
           fontSize: '13.5px',
         }}
       >
@@ -475,6 +477,9 @@ return (
                   borderBottom: '1px solid #ddd',
                  color: resolvedcategoryColor,
                   cursor: 'pointer',
+                  fontFamily: `"${fontStyle}"`,
+
+    fontSize: `${xFontSize}px`, // x-axis font size
                   fontWeight: 600,
                   whiteSpace: 'nowrap',
                 }}
@@ -488,10 +493,12 @@ return (
                 padding: '12px 14px',
                 textAlign: 'left',
                 borderBottom: '1px solid #ddd',
-                color:resolvedcategoryColor,
+                color:resolvedColor,
                 cursor: 'pointer',
                 fontWeight: 600,
                 whiteSpace: 'nowrap',
+                fontFamily: `"${fontStyle}"`,
+    fontSize: `${yFontSize}px`, // y-axis font size
               }}
             >
               Value <span style={{ opacity: 0.6 }}>{sortIcon('value')}</span>
@@ -525,6 +532,9 @@ return (
                     borderBottom: '1px solid #eee',
                     verticalAlign: 'top',
                     whiteSpace: 'nowrap',
+                     fontFamily: `"${fontStyle}"`,
+
+    fontSize: `${xFontSize}px`, // For category columns
                   }}
                 >
                   {row[header]}
@@ -538,6 +548,9 @@ return (
                   fontWeight: 500,
                   borderBottom: '1px solid #eee',
                   whiteSpace: 'nowrap',
+                   fontFamily: `"${fontStyle}"`,
+
+    fontSize: `${yFontSize}px`, // For category columns
                 }}
               >
                 {getFormattedValue(row.value)}

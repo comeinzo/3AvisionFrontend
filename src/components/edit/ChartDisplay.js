@@ -28,8 +28,10 @@ import { resetColors } from '../../features/Charts/colorSlice';
 import IndiaMap from '../charts/indiaMapChart';
 import BubbleChart from '../charts/bubbleChart';
 import TableChart from '../charts/tableChart';
+import StackedBarChart  from '../charts/stackedBarChart';
 
 import TrendChart from '../charts/TrendChart';
+import MeterGaugeChart from '../charts/meterGaugeChart';
 const Items = styled(Paper)(({ theme }) => ({
   backgroundColor: theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
   ...theme.typography.body2,
@@ -63,7 +65,7 @@ console.log("Current chartType:", chartType);
 
     const renderChart = () => {
   
- if (xAxis && xAxis.length === 0 && chartType !== "singleValueChart") return <div>No data to display</div>; // Added condition for singleValueChart
+ if (xAxis && xAxis.length === 0 && chartType !== "singleValueChart" && chartType !== "meterGauge") return <div>No data to display</div>; // Added condition for singleValueChart
      
 
       switch (chartType) {
@@ -229,6 +231,20 @@ console.log("Current chartType:", chartType);
                
               </Item>
             );
+            case "stackedbar":
+            return (
+              <Item>
+                <div className="chart-container">
+                  <StackedBarChart
+                    categories={plotData?.categories}
+                    series1={plotData?.series1}
+                    series2={plotData?.series2}
+                    aggregation={plotData?.aggregation}
+                  />
+                </div>
+               
+              </Item>
+            );
           // case "singleValueChart":
           //   return (
           //     <Item>
@@ -362,6 +378,19 @@ console.log("Current chartType:", chartType);
             <Item>
               <div className="chart-container">
                 <SingleValueChart
+                  categories={plotData?.categories}
+                  values={plotData?.values}
+                  aggregation={plotData?.aggregation}
+                />
+              </div>
+            </Item>
+          );
+           case "meterGauge":
+          console.log("Rendering single value chart with", plotData?.values, plotData?.categories);
+          return (
+            <Item>
+              <div className="chart-container">
+                <MeterGaugeChart
                   categories={plotData?.categories}
                   values={plotData?.values}
                   aggregation={plotData?.aggregation}

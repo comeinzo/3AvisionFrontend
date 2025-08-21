@@ -13,7 +13,9 @@ const initialState = {
   droppableBgColor:[],
   lastChartName: null,
   imagePositions: [],
-
+fontSize:'',
+ fontColor:'', 
+ fontStyleState:''
 };
 
 const viewChartSlice = createSlice({
@@ -36,6 +38,7 @@ const viewChartSlice = createSlice({
       state.selectedCategory=null;
       state.droppableBgColor=[];
        state.imagePositions=[];
+       state.lastChartName = null;
     },
     updateChartData: (state, action) => {
       const { chart_id, categories, values } = action.payload;
@@ -96,6 +99,18 @@ const viewChartSlice = createSlice({
   state.imagePositions = action.payload;
   console.log("Image Positions Updated:", state.imagePositions);
 },
+  setFontSize: (state, action) => {
+      state.fontSize = action.payload;
+      console.log("Dashboard fontSize Updated:", action.payload);
+    },
+     setFontColor: (state, action) => {
+      state.fontColor = action.payload;
+      console.log("Dashboard fontColor Updated:", action.payload);
+    },
+     setFontStyleLocal: (state, action) => {
+      state.fontStyleState = action.payload;
+      console.log("Dashboard fontStyleState Updated:", action.payload);
+    },
   
   }
 });
@@ -107,7 +122,7 @@ export const {
   removeChartData,
   updateSelectedCategory,
   setChartStatus,
-  updateSelectedCategory_xaxis,clearDashboardCharts,setDashboardFilters,setDashboardHeading ,toggleDataLabels,setdroppableBgColor,setLastChartName,setImagePositions
+  updateSelectedCategory_xaxis,clearDashboardCharts,setDashboardFilters,setDashboardHeading ,toggleDataLabels,setdroppableBgColor,setLastChartName,setImagePositions,setFontColor,setFontStyleLocal,setFontSize 
 } = viewChartSlice.actions;
 
 export default viewChartSlice.reducer;

@@ -42,6 +42,8 @@ const isValidValueColor = valueColor && !invalidColors.includes(valueColor.toLow
 const resolvedColor = isValidValueColor ? valueColor : getContrastColor(areaColor|| '#ffffff');
 const isValidcategoryColor = categoryColor && !invalidColors.includes(categoryColor.toLowerCase());
 const areaColorFromEditChartSlice = useSelector((state) => state.chartdata.chartColor);
+ const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
+
 const resolvedcategoryColor= isValidcategoryColor ? categoryColor : getContrastColor(areaColor || '#ffffff');
 // function getContrastColor(color) {
 //   if (!color) return 'black';
@@ -496,6 +498,12 @@ series.forEach(singleSeries => {
         horizontal: 5,
         vertical: 2
       },
+      onItemClick: {
+        toggleDataSeries: false, // Ensure this is not causing conflicts
+    },
+    onItemHover: {
+        highlightDataSeries: true
+    }
       
     },
         title: {
@@ -510,6 +518,9 @@ series.forEach(singleSeries => {
         },
         xaxis: {
             categories: uniqueCategories, // X-axis categories
+             title: { text: xAxis,style: {
+                      color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                    } },
             labels: {
               show: true,
               style: {
@@ -542,8 +553,8 @@ series.forEach(singleSeries => {
                 style: {
                     fontSize: '12px',
                     fontWeight: 600,
-                    color: '#333',
-                },
+                      color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+                    } 
             },
             labels: {
                 style: {
@@ -573,18 +584,23 @@ series.forEach(singleSeries => {
                 horizontal: false,
                 columnWidth: '50%',
                 dataLabels: {
-                    position: 'top',
-                },
+      enabled: showDataLabels,
+      offsetY: -2,
+      style: {
+        fontSize: '12px',
+        color: getContrastColor(seriesColorsMap|| '#ffffff'), // Y-axis title color
+      }
+    },
                 
                 
             },
         },
         dataLabels: {
-            enabled: false,
+            enabled: showDataLabels, 
             style: {
                 fontSize: '10px',
                 fontWeight: 500,
-                colors: ['#fff'],
+                color: getContrastColor(seriesColorsMap|| '#ffffff'), // Y-axis title color
             },
         },
         tooltip: {
@@ -594,12 +610,15 @@ series.forEach(singleSeries => {
         
                 const category = w.globals.labels[dataPointIndex]; // Fetch category dynamically
                 const value = series[seriesIndex][dataPointIndex];
-        
+        const seriesName = w.config.series[seriesIndex].name;
                 let tooltipContent = `<div style="background:  color: #fff; padding: 10px; border-radius: 5px;">`;
         
                 if (!toolTipOptions.heading && !toolTipOptions.categoryName && !toolTipOptions.value) {
                     tooltipContent += `<div><strong>Value:</strong> ${value}</div>`;
                     tooltipContent += `<div><strong>Category:</strong> ${category}</div>`;
+                     tooltipContent += `<div><strong>${xAxis[1]}:</strong> ${seriesName}</div>`; // Show series1 name as "Product"
+              
+
                 } else {
                     if (toolTipOptions.heading) {
                         tooltipContent += `<div><h4>${aggregate} of ${xAxis[0]} and ${xAxis[1]} vs ${yAxis[0]}</h4></div>`;
@@ -641,7 +660,7 @@ series.forEach(singleSeries => {
 
 <div
   style={{
-    width: dynamicWidth,
+    width: '100%',
     height: dynamicHeight,
     maxWidth: '100%',
     overflow: 'hidden',

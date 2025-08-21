@@ -1,13 +1,15 @@
 
 import React, { useState, useCallback,useEffect } from 'react';
-import { Button, Typography, Box, Paper, IconButton, Snackbar, Alert, CircularProgress } from '@mui/material';
+import { Button, Typography, Box, Paper, IconButton, Snackbar, Alert, CircularProgress,Tooltip } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import DownloadIcon from '@mui/icons-material/Download';
 import ClearIcon from '@mui/icons-material/Clear';
 import * as XLSX from 'xlsx';
 import Papa from 'papaparse';
 import { useDropzone } from 'react-dropzone';
 import { userSignUp } from '../../utils/api';
 import { useLocation } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 export default function UploadUserInput({ onUploadSubmit }) {
@@ -21,6 +23,7 @@ export default function UploadUserInput({ onUploadSubmit }) {
   const [isUploading, setIsUploading] = useState(false);
   const [companyName, setCompanyName] = useState('');
     const location = useLocation();
+    const appBarColor= useSelector((state) => state.chart.appBarColor);
     // Fetch company name from location or sessionStorage
     useEffect(() => {
      const storedCompanyName = location.state?.companyName || sessionStorage.getItem('user_name');
@@ -124,15 +127,38 @@ export default function UploadUserInput({ onUploadSubmit }) {
     setSnackbar({ ...snackbar, open: false });
   };
 
+  // return (
+  //   <Paper elevation={3} sx={{ padding: 4, borderRadius: 2, maxWidth: 500, margin: 'auto' }}>
   return (
-    <Paper elevation={3} sx={{ padding: 4, borderRadius: 2, maxWidth: 500, margin: 'auto' }}>
+  <Paper
+    elevation={3}
+    sx={{ padding: 4, borderRadius: 2, maxWidth: 500, margin: 'auto', position: 'relative' }}
+  >
+    {/* Download icon in top-right */}
+    <Box sx={{ position: 'absolute', top: 16, right: 16 }}>
+      <Tooltip title="Download Template">
+        <IconButton
+          component="a"
+          href="/User_Upload_Template.xlsx"
+          download
+          sx={{ color: appBarColor }}
+        >
+          <DownloadIcon />
+        </IconButton>
+      </Tooltip>
+      
+    </Box>
       <Box display="flex" flexDirection="column" alignItems="center" width="100%">
+        
        <Typography variant="h5" component="h1" gutterBottom align="center" fontWeight="bold">
           Upload User Data
         </Typography>
+        
          <Typography sx={{ mb: 4, fontSize: '14px', fontWeight: 'bold' }}>
                     {companyName}
                   </Typography>
+                 
+
         <Typography variant="body2" color="textSecondary" align="center" gutterBottom>
           Supported: CSV (.csv) and Excel (.xlsx). Max size: {MAX_FILE_SIZE / (1024 * 1024)}MB.
         </Typography>
@@ -150,7 +176,7 @@ export default function UploadUserInput({ onUploadSubmit }) {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            transition: 'background-color 0.3s',
+            transition: appBarColor,
             '&:hover': { backgroundColor: '#e0e0e0' },
           }}
         >
@@ -193,7 +219,9 @@ export default function UploadUserInput({ onUploadSubmit }) {
         >
           {isUploading ? 'Uploading...' : 'Upload Data'}
         </Button>
-
+<Typography variant="caption" color="text.secondary" sx={{ fontStyle: 'italic' }}>
+    *To set Reporting ID, go to the Edit section
+  </Typography>
         {/* Loading & Messages */}
         {isParsing && (
           <Box display="flex" alignItems="center" mt={2}>

@@ -15,6 +15,7 @@ const initialState = {
     currencyType: 'None', // New state for currency type
     customYAxisValue: 'None', // New state for Y-axis scale (e.g., "1000", "100000", "None")
  labelFormat: '%',
+ showDataLabels: true
 };
 
 const toolTipSlice = createSlice({
@@ -54,6 +55,9 @@ const toolTipSlice = createSlice({
     setLabelFormat: (state, action) => {
   state.labelFormat = action.payload;
 },
+setShowDataLabels: (state, action) => { // <-- NEW reducer
+      state.showDataLabels = action.payload;
+    },
         // Reset custom heading and color (optional, for chart type change)
         resetCustomHeading: (state) => {
             state.customHeading = "";
@@ -63,7 +67,9 @@ const toolTipSlice = createSlice({
             state.categoryColor = '#000'; // Default color for x-axis labels
             state.valueColor = '#000';
         },
+        resetToolTip: () => initialState,
     }
+    
 });
 
 export const { 
@@ -77,7 +83,7 @@ export const {
     resetCustomHeading, // Export the reset action
       setNumberFormat,
   setCurrencyType,
-  setCustomYAxisValue,setLabelFormat 
+  setCustomYAxisValue,setLabelFormat ,resetToolTip,setShowDataLabels 
 } = toolTipSlice.actions;
 
 export default toolTipSlice.reducer;

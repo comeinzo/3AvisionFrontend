@@ -16,6 +16,8 @@ const ChoroplethMap = ({ categories = [], values = [] }) => {
         return sessionStorage.getItem("mapLegendPosition") || "bottom";
     });
     const customHeadings = useSelector((state) => state.toolTip.customHeading);
+    const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
+    
     const areaColor = useSelector((state) => state.chartColor.BgColor);
     const [categoryColors, setCategoryColors] = useState(() => {
         const savedColors = sessionStorage.getItem("mapCategoryColors");
@@ -148,6 +150,7 @@ svg.append("rect")
         const tooltip = d3.select(tooltipRef.current);
         
     // Add Labels (Data values)
+    if (showDataLabels) {
     mapGroup.selectAll("text")
     .data(worldGeoJson.features)
     .join("text")
@@ -160,12 +163,12 @@ svg.append("rect")
         return dataMap[countryName] !== undefined ? dataMap[countryName] : "";
     })
     .attr("text-anchor", "middle")
-    .attr("font-size", "8px")
+    .attr("font-size", "10px")
     .attr("fill", "#000")
     .style("pointer-events", "none") // Don't block mouse events
     .style("font-weight", "bold")
     .style("opacity", d => dataMap[d.properties.name] !== undefined ? 1 : 0);
-
+    }
         mapGroup.selectAll('path')
             .data(worldGeoJson.features)
             .join('path')
@@ -195,7 +198,7 @@ svg.append("rect")
             mapGroup.attr('transform', event.transform);
         });
         svg.call(zoom);
-    }, [categories, values, categoryColors, areaColor]);
+    }, [categories, values, categoryColors, areaColor,showDataLabels]);
 
     const handleColorChange = (category, newColor) => {
         console.log("Changing color for:", category, "New color:", newColor);

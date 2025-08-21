@@ -41,6 +41,7 @@ const DuelAxisChart = ({
    const customYAxisValueInput = useSelector((state) => state.toolTip.customYAxisValue);
     const selectedCurrencyType = useSelector((state) => state.toolTip.currencyType);
           const ClickedTool = useSelector(state => state.chart.ClickedTool);
+  const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
  
 const sanitize = (key) =>
   key?.replace(/['"\\]/g, "").trim(); // Remove quotes, backslashes, whitespace
@@ -481,13 +482,23 @@ const getCurrencySymbol = () => {
         horizontal: 5,
         vertical: 2
       },
+      onItemClick: {
+        toggleDataSeries: false, // Ensure this is not causing conflicts
+    },
+    onItemHover: {
+        highlightDataSeries: true
+    }
       
     },
-
+dataLabels: {
+      enabled: showDataLabels, // Use the new 
+},
     xaxis: {
       categories: filteredCategories,
       tickAmount: Math.min(filteredCategories.length, 20),
-      title: { text: xAxis },
+      title: { text: xAxis,style: {
+          color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+        } },
       labels: {
         show: true,
         trim: true,
@@ -509,7 +520,9 @@ const getCurrencySymbol = () => {
     },
     yaxis: [
       {
-        title: { text: yAxis[0] || "Series 1" },
+        title: { text: yAxis[0] || "Series 1",style: {
+          color: getContrastColor(areaColor || '#ffffff'), // X-axis title color
+        } },
         labels: {
           style: {
             fontFamily: fontStyle,
@@ -579,6 +592,7 @@ const safeSeries1 = Array.isArray(filteredSeries1)
 const safeSeries2 = Array.isArray(filteredSeries2)
   ? filteredSeries2.map(val => isNaN(parseFloat(val)) ? 0 : parseFloat(val))
   : [];
+  
 
   const series = [
     {
@@ -626,7 +640,7 @@ const safeSeries2 = Array.isArray(filteredSeries2)
              
 <div
   style={{
-    width: dynamicWidth,
+    width: '100%',
     height: dynamicHeight,
     maxWidth: '100%',
     overflow: 'hidden',

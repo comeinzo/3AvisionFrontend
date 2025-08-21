@@ -25,6 +25,7 @@ const IndiaMap = ({ categories = [], values = [] }) => {
       const xAxis = useSelector((state) => state.chart.xAxis);
         const yAxis = useSelector((state) => state.chart.yAxis);
         const aggregation = useSelector((state) => state.chart.aggregate);
+  const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
   
     let parsedHeading = customHeadings;
   
@@ -222,7 +223,7 @@ const handleLegendClick = (index) => {
                                   hover: { fill: "#000000", stroke: "#FFF", outline: "none" },
                                 }}
                               />
-                              {value !== "N/A" && (
+                              {showDataLabels && value !== "N/A" && (
                                 <Annotation
                                   subject={[x, y]}
                                   dx={0}

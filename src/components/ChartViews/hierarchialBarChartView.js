@@ -942,12 +942,12 @@ const D3HierarchialBarChart = ({
 
         const margin = {
             top: 50,
-            right: 30,
+            right: 40,
             bottom: 20,
-            left: Math.max(100, d3.max(sortedCategories, d => d.length) * (parseFloat(yFontSize) * 0.6) || 100)
+            left: Math.max(100, d3.max(sortedCategories, d => d.length) * (parseFloat(yFontSize) * 0.4) || 100)
         };
         const adjustedWidth = effectiveChartWidth - margin.left - margin.right;
-        const adjustedHeight = effectiveChartHeight - margin.top - margin.bottom - (parsedHeading ? 20 : 0);
+        const adjustedHeight = effectiveChartHeight - margin.top - margin.bottom - (parsedHeading ? 100 : 10);
 
         const svg = d3.select(svgRef.current)
             .attr('width', effectiveChartWidth)
@@ -978,11 +978,30 @@ const D3HierarchialBarChart = ({
         g.append('g')
             .call(d3.axisLeft(y).tickSizeOuter(0))
             .selectAll('text')
-            .text((d) => (d.length > 15 ? d.substring(0, 14) + "..." : d))
+            .text((d) => (d.length > 9 ? d.substring(0, 8) + "..." : d))
             .style('font-size', `${yFontSize}px`)
             .style('fill', resolvedValueColor)
             .style('font-family', fontStyle);
+g.append("text")
+  .attr("transform", `rotate(-90)`)
+  .attr("y", -margin.left + 20)
+  .attr("x", -adjustedHeight / 2)
+  .attr("dy", "1em")
+  .style("text-anchor", "middle")
+  .style("font-size", `${xFontSize}px`)
+  .style("font-family", fontStyle)
+  .style("fill", resolvedCategoryColor || "#333")
+  .text(y_axis || "Y Axis");
 
+// Add X-axis label (horizontal)
+g.append("text")
+  .attr("x", adjustedWidth / 2)
+  .attr("y", -margin.top + 10) // Since x-axis is at the top
+  .style("text-anchor", "middle")
+  .style("font-size", `${xFontSize }px`)
+  .style("font-family", fontStyle)
+  .style("fill", resolvedValueColor || "#333")
+  .text(x_axis?.[0] || "X Axis");
         g.selectAll('rect')
             .data(sortedData)
             .enter()
@@ -1090,7 +1109,7 @@ const D3HierarchialBarChart = ({
         effectiveChartWidth,
         effectiveChartHeight,
         xFontSize, yFontSize, fontStyle, resolvedCategoryColor, resolvedValueColor, opacity, headingColor, areaColor,
-        aggregation, x_axis, y_axis // Add these to dependencies as they are used in tooltip content
+        aggregation, x_axis, y_axis 
     ]);
 
     return (

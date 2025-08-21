@@ -26,7 +26,8 @@ import DuealChartInputsss from '../charts/duealChartInput';
 import ChartDisplay from '../chartDisplay'; // This is where the chart is rendered
 import DashboardFilter from './dashboardFilter';
 import DataOptimizationModal, { optimizeData } from './DataOptimizationModal';
-
+import CustomAlertDialog from '../DashboardActions/CustomAlertDialog'; // Import the new component
+import AlertDialog from '../DashboardActions/ConfirmationDialog'; // Import the new component
 // Import API functions
 import { saveDataToDatabase, validateSaveName } from '../../utils/api';
 import { generateChart } from '../../features/Dashboard-Slice/chartSlice';
@@ -89,6 +90,11 @@ function Dashboard() {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
   const selectedTable = sessionStorage.getItem("selectedTable");
+  // State for the custom dialog box
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogTitle, setDialogTitle] = useState('');
+  const [dialogMessage, setDialogMessage] = useState('');
+const [dialogType, setDialogType] = useState('info'); // Add a state for the dialog type
 
   const [chartLoadingTime, setChartLoadingTime] = useState(null);
   const chartLoadStartTimeRef = useRef(null);
@@ -104,6 +110,9 @@ function Dashboard() {
   const isValidChartConfiguration = () => {
     return xAxis && yAxis && plotData && plotData.categories && plotData.categories.length > 0;
   };
+const handleCloseDialog = () => {
+  setDialogOpen(false);
+};
 
   // Check for large datasets and show optimization modal if needed (unchanged)
   useEffect(() => {
@@ -195,17 +204,33 @@ function Dashboard() {
   };
 
   const handleSaveToDatabase = async () => {
+    // if (!saveName.trim()) {
+    //   alert("Please enter a save name before saving.");
+    //   return;
+    // }
     if (!saveName.trim()) {
-      alert("Please enter a save name before saving.");
-      return;
-    }
+  setDialogTitle("Missing Save Name");
+  setDialogMessage("Please enter a save name before saving.");
+  setDialogType("warning");
+  setDialogOpen(true);
+  return;
+}
+
 
     try {
-      const isValid = await validateSaveName(saveName, company_name);
+      const isValid = await validateSaveName(saveName, company_name,user_id);
+      // if (isValid === true) {
+      //   alert("Save name already exists. Please choose a different name.");
+      //   return;
+      // }
       if (isValid === true) {
-        alert("Save name already exists. Please choose a different name.");
-        return;
-      }
+  setDialogTitle("Duplicate Save Name");
+  setDialogMessage("Save name already exists. Please choose a different name.");
+  setDialogType("error");
+  setDialogOpen(true);
+  return;
+}
+
 
       const formattedCheckedOptions = Object.fromEntries(
         Object.entries(checkedOptions).map(([key, values]) => [key, Array.isArray(values) ? values : []])
@@ -273,15 +298,26 @@ const dataToSave = (
       const response = await saveDataToDatabase(dataToSend);
 
       setSaveName("");
-      setSnackbarSeverity('success');
-      setSnackbarMessage('Data saved successfully!');
-      setSnackbarOpen(true);
-      setOpen(false);
+      // setSnackbarSeverity('success');
+      // setSnackbarMessage('Data saved successfully!');
+      // setSnackbarOpen(true);
+      // setOpen(false);
+      setDialogTitle("Success");
+setDialogMessage("Data saved successfully!");
+setDialogType("success");
+setDialogOpen(true);
+setOpen(false);
+
     } catch (error) {
       console.error('Error saving data:', error);
-      setSnackbarSeverity('error');
-      setSnackbarMessage('Error saving data. Please try again.');
-      setSnackbarOpen(true);
+      // setSnackbarSeverity('error');
+      // setSnackbarMessage('Error saving data. Please try again.');
+      // setSnackbarOpen(true);
+      setDialogTitle("Error");
+setDialogMessage("Error saving data. Please try again.");
+setDialogType("error");
+setDialogOpen(true);
+
     }
   };
 
@@ -389,7 +425,7 @@ const dataToSave = (
           <Button onClick={handleSaveToDatabase} color="primary">Save</Button>
         </DialogActions>
       </Dialog>
-
+{/* 
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={6000}
@@ -398,7 +434,15 @@ const dataToSave = (
         <MuiAlert onClose={() => setSnackbarOpen(false)} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
         </MuiAlert>
-      </Snackbar>
+      </Snackbar> */}
+      <CustomAlertDialog
+  open={dialogOpen}
+  onClose={handleCloseDialog}
+  title={dialogTitle}
+  message={dialogMessage}
+  type={dialogType}
+/>
+
     </div>
   );
 }

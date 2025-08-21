@@ -27,6 +27,7 @@ const downloadMenuRef = useRef(null);
  const [showResetButton, setShowResetButton] = useState(false);
        const areaColor = useSelector((state) => state.chartColor.BgColor);
        const textColor = getContrastColor(areaColor); // Should return black
+const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
 
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [zoomTransform, setZoomTransform] = useState(d3.zoomIdentity);
@@ -354,51 +355,94 @@ const renderDownloadMenu = () => (
     }
   }, [categories, values]);
 
-  const transformToHierarchy = (categories, values) => {
-    if (!categories || categories.length === 0 || !values || values.length === 0) {
-      return null;
-    }
+  // const transformToHierarchy = (categories, values) => {
+  //   if (!categories || categories.length === 0 || !values || values.length === 0) {
+  //     return null;
+  //   }
 
-    const root = { name: 'root', children: [] };
+  //   const root = { name: 'root', children: [] };
 
-    categories.forEach((category, index) => {
-      let currentLevel = root;
+  //   categories.forEach((category, index) => {
+  //     let currentLevel = root;
 
-      Object.values(category)
-        .slice()
-        .reverse()
-        .forEach((level, levelIndex, arr) => {
-          let node = currentLevel.children.find((child) => child.name === level);
+  //     Object.values(category)
+  //       .slice()
+  //       .reverse()
+  //       .forEach((level, levelIndex, arr) => {
+  //         let node = currentLevel.children.find((child) => child.name === level);
 
-          if (!node) {
-            if (currentLevel.children.length < 10) {
-              node = { name: level, children: [] };
-              currentLevel.children.push(node);
-            } else {
-              return;
-            }
-          }
+  //         if (!node) {
+  //           if (currentLevel.children.length < 10) {
+  //             node = { name: level, children: [] };
+  //             currentLevel.children.push(node);
+  //           } else {
+  //             return;
+  //           }
+  //         }
 
-          if (levelIndex === arr.length - 1) {
-            if (node.children.length < 10) {
-              node.children.push({ name: values[index], value: values[index] });
-            }
-          }
-          currentLevel = node;
-        });
-    });
+  //         if (levelIndex === arr.length - 1) {
+  //           if (node.children.length < 10) {
+  //             node.children.push({ name: values[index], value: values[index] });
+  //           }
+  //         }
+  //         currentLevel = node;
+  //       });
+  //   });
+const transformToHierarchy = (categories, values) => {
+  if (!categories || categories.length === 0 || !values || values.length === 0) {
+    return null;
+  }
 
-    const rootNode = d3.hierarchy(root);
+  const root = { name: 'root', children: [] };
 
-    rootNode.descendants().forEach((d) => {
-      if (d.depth > 0) {
-        d._children = d.children;
-        d.children = null;
-      }
-    });
+  categories.forEach((category, index) => {
+    let currentLevel = root;
 
-    return rootNode;
-  };
+    const keys = Object.keys(category); // Get user-defined key order
+
+    keys.forEach((key, levelIndex) => {
+      const levelValue = category[key];
+
+      let node = currentLevel.children.find((child) => child.name === levelValue);
+      if (!node) {
+        node = { name: levelValue, children: [] };
+        currentLevel.children.push(node);
+      }
+
+      if (levelIndex === keys.length - 1) {
+        // Append unit-sold value as final child (leaf node)
+        node.children.push({ name: values[index], value: values[index] });
+      }
+
+      currentLevel = node;
+    });
+  });
+
+  const rootNode = d3.hierarchy(root);
+
+  // Collapse nodes initially
+  rootNode.descendants().forEach((d) => {
+    if (d.depth > 0) {
+      d._children = d.children;
+      d.children = null;
+    }
+  });
+
+  return rootNode;
+};
+
+
+  //   const rootNode = d3.hierarchy(root);
+
+  //   rootNode.descendants().forEach((d) => {
+  //     if (d.depth > 0) {
+  //       d._children = d.children;
+  //       d.children = null;
+  //     }
+  //   });
+
+  //   return rootNode;
+  // };
 
   const toggleChildren = (d) => {
     if (d.children) {
@@ -463,14 +507,23 @@ const renderDownloadMenu = () => (
       //   .attr('x', (d) => (d.children || d._children ? -12 : 12))
       //   .attr('text-anchor', (d) => (d.children || d._children ? 'end' : 'start'))
       //   .text((d) => d.data.name);
-      nodeEnter
-  .append('text')
-  .attr('dy', '.35em')
-  .attr('x', (d) => (d.children || d._children ? -12 : 12))
-  .attr('text-anchor', (d) => (d.children || d._children ? 'end' : 'start'))
-  .style('fill', getContrastColor(areaColor))
-  .text((d) => d.data.name);
+  //     nodeEnter
+  // .append('text')
+  // .attr('dy', '.35em')
+  // .attr('x', (d) => (d.children || d._children ? -12 : 12))
+  // .attr('text-anchor', (d) => (d.children || d._children ? 'end' : 'start'))
+  // .style('fill', getContrastColor(areaColor))
+  // .text((d) => d.data.name);
 
+  if (showDataLabels) {
+    nodeEnter
+      .append('text')
+      .attr('dy', '.35em')
+      .attr('x', (d) => (d.children || d._children ? -12 : 12))
+      .attr('text-anchor', (d) => (d.children || d._children ? 'end' : 'start'))
+      .style('fill', getContrastColor(areaColor))
+      .text((d) => d.data.name);
+  }
         
 
       nodeEnter
@@ -489,7 +542,7 @@ const renderDownloadMenu = () => (
     if (data) {
       generateDendrogram(data);
     }
-  }, [data, depthColors,areaColor,categories]);
+  }, [data, depthColors,areaColor,categories,showDataLabels]);
 
   const toolbarTools = [
     {

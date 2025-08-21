@@ -9,6 +9,7 @@ import { useSelector } from 'react-redux';
 import { topLegendStyles, bottomLegendStyles, leftLegendStyles, rightLegendStyles } from './hilegendStyles';
 import { ensureValidColor } from './hicolorUtils';
 
+import { getContrastColor } from '../../utils/colorUtils';
 const ChartLegend = ({ 
     position, 
     sortedData, 
@@ -21,6 +22,15 @@ const ChartLegend = ({
     const xFontSize = useSelector((state) => state.toolTip.fontSizeX || "12");
     const fontStyle = useSelector((state) => state.toolTip.fontStyle || "Arial");
     
+        const categoryColor = useSelector((state) => state.toolTip.categoryColor);       
+            const valueColor= useSelector((state) => state.toolTip.valueColor);
+       const areaColor = useSelector((state) => state.chartColor.BgColor);
+        const invalidColors = ['#0000', '#000000', '#000'];
+    const isValidValueColor = valueColor && !invalidColors.includes(valueColor.toLowerCase());
+    const resolvedColor = isValidValueColor ? valueColor : getContrastColor(areaColor|| '#ffffff');
+    const isValidcategoryColor = categoryColor && !invalidColors.includes(categoryColor.toLowerCase());
+    const areaColorFromEditChartSlice = useSelector((state) => state.chartdata.chartColor);
+    const resolvedcategoryColor= isValidcategoryColor ? categoryColor : getContrastColor(areaColor || '#ffffff');
     // Now we can have the early return
     if (position === "hide" || !sortedData.length) return null;
     
@@ -64,15 +74,17 @@ const ChartLegend = ({
         <>
             {sortedData.map((d, i) => {
                 // Ensure we have a valid color
-                const safeColor = ensureValidColor(barColor[i], i);
-                
+                //const safeColor = ensureValidColor(barColor[i], i);
+                const categoryColor = barColor[i];  // i-th category color
+const isValidCategoryColor = categoryColor && !invalidColors.includes(categoryColor.toLowerCase());
+const safeColor = isValidCategoryColor ? categoryColor : getContrastColor(areaColor);
                 return (
                     <span
                         key={i}
                         onClick={() => handleLegendClick(i)}
                         style={{
                             cursor: "pointer",
-                            // color: safeColor,
+                             color: resolvedcategoryColor,
                             fontFamily: fontStyle,
                             fontSize: `${xFontSize}px`,
                             display: "flex",
@@ -118,9 +130,24 @@ const ChartLegend = ({
     );
 
     return (
-        <div style={styleFunction(xFontSize, fontStyle, barColor, sortedData, setSelectedLegendIndex)}>
-            {renderLegendContent()}
-        </div>
+    //     <div style={{styleFunction(xFontSize, fontStyle, barColor, sortedData, setSelectedLegendIndex), maxHeight: '400px',
+    //     overflowY: 'auto',
+    //     paddingRight: '2px'}}>
+    //         {/* {renderLegendContent()} */}
+            
+    //   {renderLegendContent()}
+    // </div>
+     <div
+      style={{
+        maxHeight: '400px',
+        overflowY: 'auto',
+        paddingRight: '2px',
+        ...styleFunction(xFontSize, fontStyle, barColor, sortedData, setSelectedLegendIndex)
+      }}
+      className="bg-white shadow-md rounded-lg" // Added some basic Tailwind styling for the container
+    >
+      {renderLegendContent()}
+    </div>
     );
 };
 

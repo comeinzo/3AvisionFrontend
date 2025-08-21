@@ -11,6 +11,8 @@ import { setChartColor } from '../../features/Charts/colorSlice';
 
 const ChoroplethMap = ({ categories = [], values = [] }) => {
   const dispatch = useDispatch();
+  const showDataLabels = useSelector((state) => state.toolTip.showDataLabels); // <-- new selector
+  
 
   const [tooltipContent, setTooltipContent] = useState("");
   const [districtColors, setDistrictColors] = useState({});
@@ -193,7 +195,7 @@ const ChoroplethMap = ({ categories = [], values = [] }) => {
                           hover: { fill: "#000000", stroke: "#FFF", outline: "none" },
                         }}
                       />
-                      {value !== "N/A" && (
+                      {showDataLabels && value !== "N/A" && (
                         <Annotation
                           subject={[x, y]}
                           dx={0}

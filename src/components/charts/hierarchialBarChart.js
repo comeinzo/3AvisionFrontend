@@ -173,9 +173,11 @@ const sortedData = useMemo(() => {
         }
     }, [chartData.categories, categories]);
     
-    // Drill-down functionality
+    // // Drill-down functionality
     // const handleClicked = async (event, clickedCategoryIndex) => {
-    //     const clickedCategory = chartData.categories[clickedCategoryIndex];
+    //     // const clickedCategory = chartData.categories[clickedCategoryIndex];
+    //      const clickedCategory = sortedData[clickedCategoryIndex]?.category;
+    //     console.log("clickedCategory",clickedCategory)
     //     if (!clickedCategory) return;
     //     dispatch(setClickedCategory(clickedCategory));
 
@@ -192,14 +194,14 @@ const sortedData = useMemo(() => {
 
     //         if (responseData.categories?.length && responseData.values?.length) {
     //             // Combine values for the same category
-    //             const combinedData = responseData.categories.reduce((acc, category, index) => {
-    //                 if (acc[category]) {
-    //                     acc[category] += responseData.values[index];
-    //                 } else {
-    //                     acc[category] = responseData.values[index];
-    //                 }
-    //                 return acc;
-    //             }, {});
+                // const combinedData = responseData.categories.reduce((acc, category, index) => {
+                //     if (acc[category]) {
+                //         acc[category] += responseData.values[index];
+                //     } else {
+                //         acc[category] = responseData.values[index];
+                //     }
+                //     return acc;
+                // }, {});
 
     //             // Save current state in drill stack
     //             setDrillStack((prev) => [...prev, chartData]);
@@ -223,9 +225,11 @@ const sortedData = useMemo(() => {
     //     }
     // };
     const handleClicked = async (event, clickedCategoryIndex) => {
-    const clickedCategory = chartData.categories[clickedCategoryIndex];
-    if (!clickedCategory) return;
-
+        // const clickedCategory = chartData.categories[clickedCategoryIndex];
+         const clickedCategory = sortedData[clickedCategoryIndex]?.category;
+        console.log("clickedCategory",clickedCategory)
+        if (!clickedCategory) return;
+        dispatch(setClickedCategory(clickedCategory));
     // Prevent further drill-down beyond the last X value
     if (drillStack.length >= xAxis.length) {
         alert(`No further drill-down is allowed beyond "${xAxis.join(' → ')}".`);
@@ -319,29 +323,50 @@ const handleDrillUp = () => {
   }
 };
 
-    // Toolbar handlers
-    const handleTop10 = () => {
-        dispatch(setClickedTool('Show Top 10'));
-        const sortedIndices = values
-            .map((value, index) => ({ value, index }))
-            .sort((a, b) => b.value - a.value)
-            .slice(0, 10)
-            .map(item => item.index);
+    // // Toolbar handlers
+    // const handleTop10 = () => {
+    //     dispatch(setClickedTool('Show Top 10'));
+    //     const sortedIndices = values
+    //         .map((value, index) => ({ value, index }))
+    //         .sort((a, b) => b.value - a.value)
+    //         .slice(0, 10)
+    //         .map(item => item.index);
 
-        const filteredCategories = sortedIndices.map(index => categories[index]);
-        const filteredValues = sortedIndices.map(index => values[index]);
+    //     const filteredCategories = sortedIndices.map(index => categories[index]);
+    //     const filteredValues = sortedIndices.map(index => values[index]);
         
-        setChartData({
-            categories: filteredCategories,
-            values: filteredValues,
-        });
+    //     setChartData({
+    //         categories: filteredCategories,
+    //         values: filteredValues,
+    //     });
         
-        // Generate colors for the filtered data
-        const filteredColors = generateColorPalette(filteredCategories.length);
-        console.log("Top10 filtered colors:", filteredColors);
-        setBarColor(filteredColors);
-        setIsFiltered(true);
-    };
+    //     // Generate colors for the filtered data
+    //     const filteredColors = generateColorPalette(filteredCategories.length);
+    //     console.log("Top10 filtered colors:", filteredColors);
+    //     setBarColor(filteredColors);
+    //     setIsFiltered(true);
+    // };
+const handleTop10 = () => {
+    dispatch(setClickedTool('Show Top 10'));
+
+    const sortedIndices = chartData.values
+        .map((value, index) => ({ value, index }))
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 10)
+        .map(item => item.index);
+
+    const filteredCategories = sortedIndices.map(index => chartData.categories[index]);
+    const filteredValues = sortedIndices.map(index => chartData.values[index]);
+
+    setChartData({
+        categories: filteredCategories,
+        values: filteredValues,
+    });
+
+    const filteredColors = generateColorPalette(filteredCategories.length);
+    setBarColor(filteredColors);
+    setIsFiltered(true);
+};
 
     const handleBottom10 = () => {
         dispatch(setClickedTool('Show Bottom 10'));
@@ -478,11 +503,11 @@ const handleDrillUp = () => {
   className="chart-container"
   style={{
     width: '100%',
-    maxWidth: '1200px',
-    height: window.innerWidth < 768 ? 330 : 500,
+    maxWidth: '1150px',
+    height: window.innerWidth < 768 ? 330 : 550,
     overflow: 'hidden',
     backgroundColor: areaColor,
-    borderRadius: '8px',
+    // borderRadius: '8px',
     padding: '16px',
   }}
 >

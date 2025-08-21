@@ -32,6 +32,10 @@ import DesignChart from '../pages/designChart/designChart';
 import FontStyleSettings from '../components/charts/FontStyleSettings';
 import AiDashboardPage from '../pages/aiDashboard/aiDpage';
 
+import DataSourcePage from '../pages/Pages/DataSourcePage';
+import DesignPage from '../pages/Pages/DesignPage';
+import EditPage from '../pages/Pages/EditPgae';
+import ViewPage from '../pages/Pages/ViewPage';
 import Xaxistest from '../components/chartCreation/xAxis';
 const AppRouter = () => {
   return (
@@ -84,6 +88,12 @@ const AppRouter = () => {
       {/* =====================GAYATHRI======================= */}
       <Route path="/user_input" element={<User_input/>} />  
 
+
+<Route path="/data-source-page" element={<DataSourcePage />} />
+
+<Route path="/Design-page" element={<DesignPage />} />
+<Route path="/Edit-page" element={<EditPage />} />
+<Route path="/View-page" element={<ViewPage />} />
 
 
       {/* test */}

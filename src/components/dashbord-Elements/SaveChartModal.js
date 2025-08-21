@@ -39,7 +39,7 @@ const SaveChartModal = ({ open, setOpen }) => {
     }
 
     try {
-      const isValid = await validateSaveName(saveName, company_name);
+      const isValid = await validateSaveName(saveName, company_name,user_id);
       if (isValid === true) {
         alert('Save name already exists. Please choose a different name.');
         return;

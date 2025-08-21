@@ -18,6 +18,9 @@ import {
 import { setShowDashboard, setCheckedPaths } from '../../features/excelFileSlice/LoadExcelFileSlice';
 import { resetChartState } from '../../features/Dashboard-Slice/chartSlice';
 import { resetColumnInfo } from '../../features/Dashboard-Slice/dashboardtableSlice';
+import {resetToolTip} from '../../features/ToolTip/toolTipSlice';
+  import CustomAlertDialog from '../DashboardActions/CustomAlertDialog';
+import ConfirmationDialog from '../DashboardActions/ConfirmationDialog';
 import { 
   fetchTableNamesAPI, 
   fetchTableDetailsAPI, 
@@ -79,6 +82,15 @@ const LoadExcelFile = () => {
   const [loadSuccess, setLoadSuccess] = useState(false);
   const [createViewOpen, setCreateViewOpen] = useState(false);
   const [viewCreated, setViewCreated] = useState(false);
+   const [dialogOpen, setDialogOpen] = React.useState(false);
+    const [dialogTitle, setDialogTitle] = React.useState('');
+    const [dialogMessage, setDialogMessage] = React.useState('');
+    const [dialogType, setDialogType] = React.useState(''); // 'success', 'error', 'info'
+  const [confirmOpen, setConfirmOpen] = React.useState(false);
+  const [confirmMessage, setConfirmMessage] = React.useState('');
+  const [confirmTitle, setConfirmTitle] = React.useState('');
+  const [confirmResolve, setConfirmResolve] = React.useState(null);
+  
   const navigate = useNavigate();
 const fontStyle = useSelector((state) => state.barColor.fontStyle);
   // Helper function to format date for input
@@ -268,6 +280,36 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
       setIsLoading(false);
     }
   };
+     const handleCloseDialog = () => {
+  setDialogOpen(false);
+};
+
+    
+useEffect(() => {
+  if (loadSuccess || viewCreated) {
+    setDialogTitle("Success");
+    setDialogType("success");
+    if (viewCreated) {
+      setDialogMessage("Database view created successfully!");
+    } else {
+      const selectedCols = enableColumnFilter && selectedColumns.length > 0
+        ? `${selectedColumns.length} selected columns`
+        : 'all columns';
+
+      const dateRange = isDateFilterComplete
+        ? ` (${formatDateForDisplay(startDate)} - ${formatDateForDisplay(endDate)})`
+        : '';
+
+      const conditionCount = isColumnConditionsComplete
+        ? ` and ${columnConditions.filter(c => c.column && c.operator).length} condition(s)`
+        : '';
+
+      setDialogMessage(`Table data loaded with ${selectedCols}${dateRange}${conditionCount}`);
+    }
+
+    setDialogOpen(true);
+  }
+}, [loadSuccess, viewCreated]);
 
   // Debounced search handler
   const handleSearchDebounced = debounce((query) => {
@@ -281,11 +323,34 @@ const fontStyle = useSelector((state) => state.barColor.fontStyle);
     dispatch(resetColumnInfo());
     resetFilters();
   };
+  const handleConfirm = (title, message) => {
+  return new Promise((resolve) => {
+    setConfirmTitle(title);
+    setConfirmMessage(message);
+    setConfirmOpen(true);
+    setConfirmResolve(() => resolve);
+  });
+};
+
+const handleConfirmClose = (result) => {
+  setConfirmOpen(false);
+  if (confirmResolve) confirmResolve(result);
+};
 const handleDeleteTable = async () => {
   if (!selectedTable) return;
 
-  const confirmed = window.confirm(`Are you sure you want to delete the table "${selectedTable}"? This action cannot be undone.`);
-  if (!confirmed) return;
+  // const confirmed = window.confirm(`Are you sure you want to delete the table "${selectedTable}"? This action cannot be undone.`);
+  const confirmed = await handleConfirm(
+            `Are you sure you want to delete the table "${selectedTable}"? This action cannot be undone.`
+          );
+          // if (!confirmed) {
+          //   setDialogTitle('Information');
+          //   setDialogMessage(`Upload cancelled by user. You chose not to update table "${selectedTable}".`);
+          //   setDialogType('info');
+          //   setDialogOpen(true);
+          //   return; // Exit if user cancels
+          // }
+   if (!confirmed) return;
 
   try {
     const res = await deleteTableAPI(databaseName, selectedTable);
@@ -301,7 +366,11 @@ const handleDeleteTable = async () => {
     setTableNames(updatedTableNames.sort());
   } catch (error) {
     console.error('Error deleting table:', error);
-    alert('Failed to delete table.');
+    // alert('Failed to delete table.');
+    setDialogTitle("Error");
+setDialogMessage('Failed to delete table.');
+setDialogType("error");
+setDialogOpen(true);
   }
 };
 
@@ -347,6 +416,7 @@ const handleDeleteTable = async () => {
       setLoadSuccess(true);
       dispatch(resetChartState());
       dispatch(resetChartType());
+      dispatch(resetToolTip())
 
       // Clear any remaining chart-related data
       sessionStorage.removeItem('xAxis');
@@ -466,6 +536,7 @@ const handleDeleteTable = async () => {
       setViewCreated(true);
       dispatch(resetChartState());
       dispatch(resetChartType());
+        dispatch(resetToolTip());
 
       // Clear any remaining chart-related data
       sessionStorage.removeItem('xAxis');
@@ -723,7 +794,7 @@ const handleDeleteTable = async () => {
         theamColor={appbarcolor}
       />
       
-      {/* Success Notifications */}
+      {/* Success Notifications
       <Snackbar
         open={loadSuccess || viewCreated}
         autoHideDuration={4000}
@@ -748,7 +819,21 @@ const handleDeleteTable = async () => {
             `Table data loaded with ${enableColumnFilter && selectedColumns.length > 0 ? `${selectedColumns.length} selected columns` : 'all columns'}${isDateFilterComplete ? ` (${formatDateForDisplay(startDate)} - ${formatDateForDisplay(endDate)})` : ''}${isColumnConditionsComplete ? ` and ${columnConditions.filter(c => c.column && c.operator).length} condition(s)` : ''}`
           }
         </Alert>
-      </Snackbar>
+      </Snackbar> */}
+       <CustomAlertDialog
+        open={dialogOpen}
+        onClose={handleCloseDialog}
+        title={dialogTitle}
+        message={dialogMessage}
+        type={dialogType}
+      />
+      <ConfirmationDialog
+                    open={confirmOpen}
+                    onClose={handleConfirmClose}
+                    title={confirmTitle}
+                    message={confirmMessage}
+                  />
+      
     </Box>
   );
 };

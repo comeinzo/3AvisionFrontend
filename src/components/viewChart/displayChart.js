@@ -1,24 +1,36 @@
+
+
+
+
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useDispatch, useSelector,shallowEqual } from "react-redux";
-import { fetchTotalRows } from '../../utils/api';
+import { useDispatch, useSelector, shallowEqual, } from "react-redux";
+import { fetchTotalRows, isChartInDashboard } from '../../utils/api';
 import DraggableChartButton from './DraggableChartButton';
 import DroppableArea from './DroppableArea';
 import ResizableChart from './ResizableChart';
-import { saveAllCharts ,fetchSingleChartData,checkFileNameExists} from '../../utils/api';
-import { Box, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField,Typography,IconButton,Tooltip  } from "@mui/material";
+import { saveAllCharts, fetchSingleChartData, checkFileNameExists } from '../../utils/api';
+import { Box,Divider,CircularProgress, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, IconButton, Tooltip } from "@mui/material";
 import PaletteIcon from '@mui/icons-material/Palette';
 import { useRef } from 'react';
-
+import {useNavigate} from "react-router";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
-import{clearAllChartAreaColors} from '../../features/ViewChartSlice/viewChartSlice';
-import { clearAllChartPositions,addImage} from "../../features/viewDashboardSlice/dashboardpossitionslice";
- import DashboardActionContent from "../DashboardActions/dashboardActions";
+import { clearAllChartAreaColors,resetChartState } from '../../features/ViewChartSlice/viewChartSlice';
+import { clearAllChartPositions, addImage,resetDahboardState } from "../../features/viewDashboardSlice/dashboardpossitionslice";
+import DashboardActionContent from "../DashboardActions/dashboardActions";
 import HomePage from '../../pages/HomePage';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import CustomAlertDialog from '../DashboardActions/CustomAlertDialog'; // Import the new component
+import AlertDialog from '../DashboardActions/ConfirmationDialog'; // Import the new component
+// Import API functions
+import {getContrastColor } from '../../utils/colorUtils';
+import { lighten } from "@mui/material/styles";
 
+import {
+  toggleDataLabels,
+} from "../../features/viewDashboardSlice/viewDashboardSlice";
 function Charts() {
   const dispatch = useDispatch();
   const [error, setError] = useState(null);
@@ -26,57 +38,82 @@ function Charts() {
   const [droppedCharts, setDroppedCharts] = useState([]);
   const [chartNamesArray, setChartNamesArray] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [fileName, setFileName] = useState("");
+  const [dashboardName, setDashboardName] = useState(""); // Renamed from fileName for clarity
+  const [projectName, setProjectName] = useState(""); // New state for Project Name
   const dashboardfilterXaxis = useSelector((state) => state.viewcharts.selectedCategory_xaxis);
   const selectedCategory = useSelector((state) => state.viewcharts.selectedCategory);
-  const company_name=(sessionStorage.getItem('company_name'))
-  const [heading, setHeading] = useState(""); 
+  const company_name = (sessionStorage.getItem('company_name'))
+  const [heading, setHeading] = useState("");
   const chartDetails = useSelector((state) => state.viewcharts.charts, shallowEqual); // Get chart details including color
- const [droppableBgColor, setDroppableBgColor] = useState("#f0f0f0");
-const colorInputRef = useRef(null);
-const fontStyle = useSelector((state) => state.barColor.fontStyle);
-const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
- const imagePositions = useSelector((state) => state.viewchartspostion?.images || []);
-   const imageFileInputRef = useRef(null);
+  const [droppableBgColor, setDroppableBgColor] = useState("#f0f0f0");
+  const colorInputRef = useRef(null);
+  const fontStyle = useSelector((state) => state.barColor.fontStyle);
+  const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
+  const imagePositions = useSelector((state) => state.viewchartspostion?.images || []);
+  const imageFileInputRef = useRef(null);
   const droppableAreaRef = useRef(null); // Ref to pass to DroppableArea
-    const isModalOpenInSession = false; // Placeholder for actual state if used
+  const isModalOpenInSession = false; // Placeholder for actual state if used
   const isAnyContextMenuOpen = false; // Placeholder for actual state if used
-const [snackbarOpen, setSnackbarOpen] = useState(false);
-const [snackbarMessage, setSnackbarMessage] = useState('');
-const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' | 'error'
- const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false); // New state for dialog
-const handleChartLimitReached = useCallback(() => {
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success'); // 'success' | 'error'
+  const [isLimitDialogOpen, setIsLimitDialogOpen] = useState(false); // New state for dialog
+ const [chartUsageStatus, setChartUsageStatus] = useState({}); // New state to store the usage status of all charts
+const [dialogOpen, setDialogOpen] = useState(false);
+const [dialogTitle, setDialogTitle] = useState('');
+const [dialogMessage, setDialogMessage] = useState('');
+const [dialogType, setDialogType] = useState('success'); // 'success', 'error', etc.
+const navigate = useNavigate(); // Initialize useNavigate
+useEffect(() => {
+  const handlePopState = () => {
+    navigate('/Design-page');
+  };
+
+  window.addEventListener('popstate', handlePopState);
+
+  // Cleanup
+  return () => {
+    window.removeEventListener('popstate', handlePopState);
+  };
+}, [navigate]);
+const handleCloseDialog = () => {
+  setDialogOpen(false);
+};
+
+const contrastIconColor = getContrastColor(appBarColor);
+  const [loadingChartsList, setLoadingChartsList] = useState(true);
+  const handleChartLimitReached = useCallback(() => {
     setIsLimitDialogOpen(true);
   }, []);
 
   const handleCloseLimitDialog = () => {
     setIsLimitDialogOpen(false);
   };
-const handleIconClick = () => {
-  if (colorInputRef.current) {
-    colorInputRef.current.click();
-  }
-};
 
-  // const ChartPossition = useSelector((state) => state.viewchartspostion.chartPositions);
+  const handleIconClick = () => {
+    if (colorInputRef.current) {
+      colorInputRef.current.click();
+    }
+  };
+
   const ChartPossition = useSelector(
     (state) => state.viewchartspostion.chartPositions,
     shallowEqual
   );
-  const [refreshKey, setRefreshKey] = useState(0);
-  console.log ("ChartPossition",ChartPossition)
-  const savemessage= sessionStorage.getItem('chartSaveMessage');
-const [showDashboardAction, setShowDashboardAction] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0); // Not currently used, but kept from original code
+  console.log("ChartPossition", ChartPossition)
+  const savemessage = sessionStorage.getItem('chartSaveMessage'); // Not currently used, but kept from original code
+  const [showDashboardAction, setShowDashboardAction] = useState(false); // Not currently used, but kept from original code
 
   useEffect(() => {
     console.log("Updated ChartPositions:", ChartPossition);
-  
+
     setChartData((prevData) =>
       prevData.map((chartItem) => {
         const matchedPosition = ChartPossition.find(
           (pos) => pos.chartName === chartItem.chartName
         );
-  
+
         if (matchedPosition) {
           return {
             ...chartItem,
@@ -84,64 +121,99 @@ const [showDashboardAction, setShowDashboardAction] = useState(false);
               x: matchedPosition.x,
               y: matchedPosition.y,
             },
-            size:{
+            size: {
               width: matchedPosition.width,
               height: matchedPosition.height
             }
           };
         }
-  
+
         return chartItem;
       })
     );
   }, [ChartPossition]);
-  
-  
+
   console.log("ChartPossition", ChartPossition);
 
   const [user_id, setUserId] = React.useState(sessionStorage.getItem('user_id'));
 
-  console.log("company name*****************************",company_name)
+  console.log("company name*****************************", company_name)
+//  useEffect(() => {
+//     setLoadingChartsList(true);
+//     dispatch(fetchTotalRows(user_id))
+//       .unwrap()
+//       .then((response) => {
+//         if (response && response.chart_names) {
+//           let names = [];
+//           if (Array.isArray(response.chart_names)) {
+//             names = response.chart_names;
+//           } else if (typeof response.chart_names === 'object') {
+//             names = Object.values(response.chart_names).flat();
+//           } else {
+//             console.error("Unexpected format for chart_names:", response.chart_names);
+//           }
+//           setChartNamesArray(names);
+//         } else {
+//           console.error("chart_names is not present in the response:", response);
+//           setChartNamesArray([]);
+//         }
+//       })
+//       .catch((err) => {
+//         console.error("Error fetching total rows:", err);
+//         setError("Failed to fetch available charts.");
+//         setChartNamesArray([]);
+//       })
+//       .finally(() => {
+//         setLoadingChartsList(false);
+//       });
+//   }, [dispatch, user_id]);
+ useEffect(() => {
+    // Dispatch the action to set dataLabels to true when the component mounts
+    dispatch(toggleDataLabels("true"));
+  }, [dispatch]); // The dependency array ensures it runs once on mount
 
   useEffect(() => {
-    console.log("Fetching total rows");
+    setLoadingChartsList(true);
     dispatch(fetchTotalRows(user_id))
       .unwrap()
-      .then((response) => {
+      .then(async (response) => {
         if (response && response.chart_names) {
-          if (Array.isArray(response.chart_names)) {
-            setChartNamesArray(response.chart_names);
-          } else if (typeof response.chart_names === 'object') {
-            const chartNames = Object.values(response.chart_names).flat(); // Flatten array if necessary
-            setChartNamesArray(chartNames);
-          } else {
-            console.error("Unexpected format for chart_names:", response.chart_names);
-            setChartNamesArray([]);  // Set to empty array if the format is unexpected
-          }
+          let names = Array.isArray(response.chart_names) 
+            ? response.chart_names 
+            : Object.values(response.chart_names).flat();
+          
+          setChartNamesArray(names);
+
+          // New: Perform a single API call for all charts
+          const company_name = sessionStorage.getItem("company_name");
+          const usageStatus = await isChartInDashboard(names, company_name);
+          setChartUsageStatus(usageStatus);
+
         } else {
-          console.error("chart_names is not present in the response:", response);
-          setChartNamesArray([]);  // Set to empty array if chart_names is missing
+          console.error("Unexpected format for chart_names:", response.chart_names);
+          setChartNamesArray([]);
         }
       })
       .catch((err) => {
         console.error("Error fetching total rows:", err);
-        setChartNamesArray([]);  // Set to empty array in case of API error
+        setError("Failed to fetch available charts.");
+        setChartNamesArray([]);
+      })
+      .finally(() => {
+        setLoadingChartsList(false);
       });
   }, [dispatch, user_id]);
 
-  const handleChartButtonClick = useCallback(async (chartName,position) => {
+  const handleChartButtonClick = useCallback(async (chartName, position) => {
     console.log(`Chart Name: ${chartName}`);
     console.log(`company_name,${company_name}`);
-    // console.log(`Chart Name: ${chartName}, Dropped Position:`, position);
-  
+
     try {
-    //   // Fetch chart data using the API function
-    //  const company_name = sessionStorage.getItem("company_name");
-    const company_name = sessionStorage.getItem("company_name");
-    console.log("company_name", company_name);
-    const data = await fetchSingleChartData(chartName, company_name);
+      const company_name = sessionStorage.getItem("company_name");
+      console.log("company_name", company_name);
+      const data = await fetchSingleChartData(chartName, company_name,user_id);
       console.log('Data fetched from chartdata:', data);
-  
+
       setChartData((prevData) => {
         const newData = [
           ...prevData,
@@ -150,7 +222,7 @@ const [showDashboardAction, setShowDashboardAction] = useState(false);
         return newData;
       });
       console.log('Data fetched from chartdata:', data);
-  
+
       setDroppedCharts((prev) => [...prev, chartName]); // Add chart name to dropped charts
       setError(null); // Clear any previous errors
     } catch (error) {
@@ -162,22 +234,18 @@ const [showDashboardAction, setShowDashboardAction] = useState(false);
   const handleRemoveChart = useCallback((chartName) => {
     setChartData((prevData) => prevData.filter((data) => data.chartName !== chartName));
     setDroppedCharts((prev) => prev.filter((name) => name !== chartName));
-    // setChartNamesArray((prevArray) => prevArray.filter((name) => name !== chartName));
-
   }, []);
 
   const handleRemoveChartButton = useCallback((chartName) => {
     setChartData((prevData) => prevData.filter((data) => data.chartName !== chartName));
     setDroppedCharts((prev) => prev.filter((name) => name !== chartName));
     setChartNamesArray((prevArray) => prevArray.filter((name) => name !== chartName));
-
   }, []);
 
   const handleRemoveAllChart = useCallback(() => {
     setChartData([]);
     setDroppedCharts([]);
-    // setChartNamesArray([]); // Uncomment if needed
-}, []);
+  }, []);
 
   const updateChartDetails = useCallback(
     (chartName, newDetails) => {
@@ -185,9 +253,9 @@ const [showDashboardAction, setShowDashboardAction] = useState(false);
         prevData.map((chartItem) => {
           if (chartItem.chartName === chartName) {
             const matchedPosition = ChartPossition.find(
-              (pos) => pos.chartName === chartName
+              (pos) => pos.chartName === chartItem.chartName
             );
-  
+
             return {
               ...chartItem,
               ...newDetails,
@@ -205,60 +273,138 @@ const [showDashboardAction, setShowDashboardAction] = useState(false);
     },
     [ChartPossition] // Ensure latest ChartPossition is used
   );
+
   const handleSaveClick = () => {
     setOpenDialog(true);
   };
 
+  // const handleDialogClose = async (shouldSave) => {
+  //   setOpenDialog(false);
+  //   console.log("chartDetails", chartDetails);
+  //   if (shouldSave && dashboardName) { // Use dashboardName for existence check
+  //     try {
+  //       const exists = await checkFileNameExists(dashboardName, company_name); // Check dashboardName existence
 
+  //       if (exists) {
+  //         setSnackbarMessage(`The dashboard name "${dashboardName}" already exists. Please choose a different name.`);
+  //         setSnackbarSeverity('error');
+  //         setSnackbarOpen(true);
+  //         return;
+  //       }
 
-const handleDialogClose = async (shouldSave) => {
-  setOpenDialog(false);
-   console.log("chartDetails", chartDetails);
-  if (shouldSave && fileName) {
-    try {
-   
-       const exists = await checkFileNameExists(fileName, company_name);
+  //       const chartsToSave = chartData.map(droppedChart => {
+  //         const matchingDetails = chartDetails.find(detail => detail.chart_id === droppedChart[0]);
+  //         return {
+  //           ...droppedChart,
+  //           areaColor: matchingDetails ? matchingDetails.areaColor : (droppedChart[19] || '#f0f0f0'), // Use Redux color or existing/default
+  //           opacity: matchingDetails ? matchingDetails.opacity : (droppedChart[22] !== undefined ? droppedChart[22] : 1), // Pass opacity, defaulting to 1 if not found
+  //         };
+  //       });
+  //       console.log("chartsToSave", chartsToSave);
+  //       console.log("droppableBgColor", droppableBgColor);
+  //       // dispatch(resetDahboardState()); // This clears both chartPositions and images
 
-      if (exists) {
-        alert(`The file name "${fileName}" already exists. Please choose a different name.`);
-        return;
-      }
+  //       // Pass projectName as a new argument to saveAllCharts
+  //       await saveAllCharts(user_id, chartsToSave, dashboardfilterXaxis, selectedCategory, dashboardName, company_name, heading, chartsToSave, droppableBgColor, imagePositions, projectName);
 
-      const chartsToSave = chartData.map(droppedChart => {
-        const matchingDetails = chartDetails.find(detail => detail.chart_id === droppedChart[0]);
-        return {
-          ...droppedChart,
-          areaColor: matchingDetails ? matchingDetails.areaColor : (droppedChart[19] || '#f0f0f0'), // Use Redux color or existing/default
-        opacity: matchingDetails ? matchingDetails.opacity : (droppedChart[22] !== undefined ? droppedChart[22] : 1), // Pass opacity, defaulting to 1 if not found
-       
-        };
+  //       setDashboardName("");
+  //       setProjectName(""); // Clear project name
+  //       setHeading("");
+  //       handleRemoveAllChart();
+  //          // Clears dropped chart names
+  //             setChartData([]); // This is the key line for charts
+  //     setDroppedCharts([]); // This is the key line for dropped charts
+  //     setDroppableBgColor("#f0f0f0"); // Reset background color
+  //       dispatch(resetDahboardState()); // This clears both chartPositions and images
+  //     dispatch(resetChartState());
+  //     dispatch(clearAllChartAreaColors());
+  //       // dispatch(resetChartState());
+  //       // // dispatch(resetDahboardState());
+
+  //       // dispatch(clearAllChartAreaColors()); // Dispatch action to clear positions in Redux
         
-      });
-      console.log("matchingDetails", chartsToSave);
-      console.log("droppableBgColor", droppableBgColor);
-      // await saveAllCharts(user_id, chartsToSave, dashboardfilterXaxis, selectedCategory, fileName, company_name, heading, chartsToSave,droppableBgColor);
-     await saveAllCharts(user_id, chartsToSave, dashboardfilterXaxis, selectedCategory, fileName, company_name, heading, chartsToSave, droppableBgColor,imagePositions);
+      
+  //       setSnackbarMessage('Dashboard saved successfully!');
+  //       setSnackbarSeverity('success');
+  //       setSnackbarOpen(true);
+  //     } catch (error) {
+  //       console.error("Error saving dashboard:", error);
+  //       setSnackbarMessage('An error occurred while saving the dashboard.');
+  //       setSnackbarSeverity('error');
+  //       setSnackbarOpen(true);
+  //     }
+  //   }
+  // };
 
-      setFileName("");
-      setHeading("");
-      handleRemoveAllChart();
-      clearAllChartPositions();
-      dispatch(clearAllChartPositions());
-      dispatch(clearAllChartAreaColors());
-      setSnackbarMessage('Dashboard saved successfully!');
-setSnackbarSeverity('success');
-setSnackbarOpen(true);
-    } catch (error) {
-      // console.error("Error checking file name existence:", error);
-      // alert("An error occurred while checking the file name. Please try again later.");
-      setSnackbarMessage('An error occurred while saving the dashboard.');
-setSnackbarSeverity('error');
-setSnackbarOpen(true);
+  const handleDialogClose = async (shouldSave) => {
+    setOpenDialog(false);
+    
+    if (shouldSave && dashboardName) {
+        try {
+            const exists = await checkFileNameExists(dashboardName, company_name,user_id);
 
+            if (exists) {
+                // setSnackbarMessage(`The dashboard name "${dashboardName}" already exists. Please choose a different name.`);
+                // setSnackbarSeverity('error');
+                // setSnackbarOpen(true);
+                setDialogTitle("Duplicate Dashboard");
+                setDialogMessage(`The dashboard name "${dashboardName}" already exists. Please choose a different name.`);
+                setDialogType("error");
+                setDialogOpen(true);
+
+                return;
+            }
+
+            const chartsToSave = chartData.map(droppedChart => {
+                const matchingDetails = chartDetails.find(detail => detail.chart_id === droppedChart[0]);
+                return {
+                    ...droppedChart,
+                    areaColor: matchingDetails ? matchingDetails.areaColor : (droppedChart[19] || '#f0f0f0'),
+                    opacity: matchingDetails ? matchingDetails.opacity : (droppedChart[23] !== undefined ? droppedChart[23] : 1),
+                };
+            });
+
+            await saveAllCharts(user_id, chartsToSave, dashboardfilterXaxis, selectedCategory, dashboardName, company_name, heading, chartsToSave, droppableBgColor, imagePositions, projectName);
+
+            // --- Reset all state after a successful save ---
+            setDashboardName("");
+            setProjectName("");
+            setHeading("");
+            setDroppableBgColor("#f0f0f0");
+            
+            // Explicitly clear local component state
+            setChartData([]); 
+            setDroppedCharts([]); 
+
+            // Dispatch Redux reset actions
+           setTimeout(() => {
+  dispatch(resetDahboardState());
+}, 100); // slight delay to let chartData clear
+
+            dispatch(resetChartState());
+            dispatch(clearAllChartAreaColors());
+
+            // setSnackbarMessage('Dashboard saved successfully!');
+            // setSnackbarSeverity('success');
+            // setSnackbarOpen(true);
+            setDialogTitle("Success");
+setDialogMessage("Dashboard saved successfully!");
+setDialogType("success");
+setDialogOpen(true);
+
+        } catch (error) {
+            console.error("Error saving dashboard:", error);
+            // setSnackbarMessage('An error occurred while saving the dashboard.');
+            // setSnackbarSeverity('error');
+            // setSnackbarOpen(true);
+            setDialogTitle("Error");
+            setDialogMessage("An error occurred while saving the dashboard.");
+            setDialogType("error");
+            setDialogOpen(true);
+
+        }
     }
-  }
 };
-
 
   const renderedDraggableButtons = useMemo(() => (
     chartNamesArray.map((chartName, index) => (
@@ -266,10 +412,11 @@ setSnackbarOpen(true);
         key={index}
         chartName={chartName}
         disabled={droppedCharts.includes(chartName)}
-        onRemove={handleRemoveChartButton} 
+        onRemove={handleRemoveChartButton}
+        chartInUse={chartUsageStatus[chartName]}
       />
     ))
-  ), [chartNamesArray, droppedCharts]);
+  ), [chartNamesArray, droppedCharts, handleRemoveChartButton]);
 
   const renderedCharts = useMemo(() => (
     chartData.map((data) => (
@@ -281,360 +428,301 @@ setSnackbarOpen(true);
       />
     ))
   ), [chartData, handleRemoveChart, updateChartDetails]);
-  const handleDashboardActionClick = () => {
-    // setShowDashboardAction(true);
-    setShowDashboardAction((prev) => !prev);
-  };
+
   // Handler for "Add Picture" button click
-    const handleAddPictureButtonClick = useCallback(() => {
-      if (imageFileInputRef.current) {
-        imageFileInputRef.current.click(); // Trigger the hidden file input
-      }
-    }, []);
+  const handleAddPictureButtonClick = useCallback(() => {
+    if (imageFileInputRef.current) {
+      imageFileInputRef.current.click(); // Trigger the hidden file input
+    }
+  }, []);
+
   const getNextAvailablePosition = (existingItems, width, height) => {
-  const padding = 10;
-  const startX = 0;
-  const startY = 0;
-  const step = 20;
-  const maxX = 2000; // adjust based on container size
-  const maxY = 2000;
+    const padding = 10;
+    const startX = 0;
+    const startY = 0;
+    const step = 20;
+    const maxX = 2000; // adjust based on container size
+    const maxY = 2000;
 
-  for (let y = startY; y < maxY; y += step) {
-    for (let x = startX; x < maxX; x += step) {
-      const overlaps = existingItems.some(item => {
-        return !(
-          x + width < item.x ||
-          x > item.x + item.width ||
-          y + height < item.y ||
-          y > item.y + item.height
-        );
-      });
+    for (let y = startY; y < maxY; y += step) {
+      for (let x = startX; x < maxX; x += step) {
+        const overlaps = existingItems.some(item => {
+          // Ensure item has x, y, width, height properties
+          if (item && typeof item.x === 'number' && typeof item.y === 'number' && typeof item.width === 'number' && typeof item.height === 'number') {
+            return !(
+              x + width < item.x ||
+              x > item.x + item.width ||
+              y + height < item.y ||
+              y > item.y + item.height
+            );
+          }
+          return false; // If item is malformed, assume no overlap
+        });
 
-      if (!overlaps) {
-        return { x, y };
+        if (!overlaps) {
+          return { x, y };
+        }
       }
     }
-  }
 
-  // fallback if no space found
-  return { x: startX, y: startY };
-};
+    // fallback if no space found
+    return { x: startX, y: startY };
+  };
 
-    // Handler for when an image file is selected
-    const handleImageUpload = useCallback((event) => {
-      const file = event.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const imageUrl = reader.result;
-          const newImageName = `Image-${Date.now()}`;
-  
-        //   // Get the dimensions of the droppable area to calculate a sensible default position
-        //   const droppableRect = droppableAreaRef.current?.getBoundingClientRect();
-        //   const defaultX = droppableRect ? droppableRect.width / 4 : 50; // Start roughly from 1/4th of width
-        //   const defaultY = droppableRect ? droppableRect.height / 4 : 50; // Start roughly from 1/4th of height
-          
-        //   const newImagePosition = {
-        //     id: newImageName,
-        //     src: imageUrl,
-        //     x: defaultX,
-        //     y: defaultY,
-        //     width: 350, // Default size for new images
-        //     height: 400,
-        //     zIndex: (imagePositions.length > 0 ? Math.max(...imagePositions.map(img => img.zIndex || 0)) : 0) + 1, // Calculate highest zIndex
-        //     disableDragging: false,
-        //   };
-        //   dispatch(addImage(newImagePosition)); // Dispatch the addImage action
-        // };
-        // reader.readAsDataURL(file);
-          const combinedPositions = [...ChartPossition, ...imagePositions];
-      const { x, y } = getNextAvailablePosition(combinedPositions, 350, 400); // image size
+  // Handler for when an image file is selected
+  const handleImageUpload = useCallback((event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const imageUrl = reader.result;
+        const newImageName = `Image-${Date.now()}`;
 
-      const newImagePosition = {
-        id: newImageName,
-        src: imageUrl,
-        x,
-        y,
-        width: 350,
-        height: 400,
-        zIndex: (imagePositions.length > 0 ? Math.max(...imagePositions.map(img => img.zIndex || 0)) : 0) + 1,
-        disableDragging: false,
+        const combinedPositions = [...ChartPossition, ...imagePositions];
+        const { x, y } = getNextAvailablePosition(combinedPositions, 350, 400); // image size
+
+        const newImagePosition = {
+          id: newImageName,
+          src: imageUrl,
+          x,
+          y,
+          width: 350,
+          height: 400,
+          zIndex: (imagePositions.length > 0 ? Math.max(...imagePositions.map(img => img.zIndex || 0)) : 0) + 1,
+          disableDragging: false,
+        };
+
+        dispatch(addImage(newImagePosition));
       };
-
-      dispatch(addImage(newImagePosition));
-    };
-    reader.readAsDataURL(file);
-      }
-      event.target.value = null; // Clear the input so same file can be selected again
-    }, [dispatch, imagePositions,ChartPossition]);
-  
-  return (
+      reader.readAsDataURL(file);
+    }
+    event.target.value = null; // Clear the input so same file can be selected again
+  }, [dispatch, imagePositions, ChartPossition, getNextAvailablePosition]);
+return (
     <DndProvider backend={HTML5Backend}>
       <div className="App">
-      <HomePage />
-          <Grid container spacing={2} wrap="wrap" sx={{height: 'calc(100vh - 90px)',marginTop:'0px',  mt: 0, // Ensure no margin top
-        pt: 0}}>
-            
-            <Grid item xs={12} md={12} >
-            
-              <Box sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' ,marginLeft:'15px',  mt: 0, // Ensure no margin top
-        pt: 0,gap: 1.5}}>
- <Tooltip title="Change Background Color" arrow>
- <IconButton onClick={handleIconClick} title="Change Background Color" sx={{
-        // backgroundColor: "#ffffff",
-        color: "#000000",
-        padding: "8px",
-        
-        cursor: "pointer",
-        minWidth: "40px",
-        height: "40px",
-        // boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-        '&:hover': {
-          backgroundColor: '#f0f0f0',
-        },
+ <HomePage />
+
+    {/* Toolbar ABOVE sidebar and content */}
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        p: 1,
+        gap: 1.5,
+        borderBottom: '1px solid #e0e0e0',
+        bgcolor: 'white',
+        height: '55px',
       }}
     >
-    <PaletteIcon />
-  </IconButton>
- 
-  </Tooltip> 
-  <input
-    ref={colorInputRef}
-    type="color"
-    value={droppableBgColor}
-    onChange={(e) => setDroppableBgColor(e.target.value)}
-    // style={{ display: 'none',right: 20, cursor: 'pointer', ml: 2, fontSize: '20px', strokeWidth: 0.5  }}
-    style={{
-      width: 0,
-      height: 0,
-      opacity: 0,
-      visibility: 'hidden',
-      position: 'absolute',
-    }}
-            
-  />
-     {/* Add Picture Button - NOW ABOVE THE DROPPABLE AREA */}
-                <Button
-                  onClick={handleAddPictureButtonClick}
-                  variant="contained"
-                  sx={{
-                    backgroundColor: "#ffffff",
-                    color: "#000000",
-                    padding: "8px",
-                  
-                    cursor: "pointer",
-                    minWidth: "40px",
-                    height: "40px",
-                    boxShadow: "none",
-                    // boxShadow: "0 2px 4px rgba(0, 0, 0, 0.1)",
-                    '&:hover': {
-                      backgroundColor: '#f0f0f0',
-                    },
-                  }}
-     
-                  title="Add a new picture to the dashboard"
-                  disabled={isModalOpenInSession || isAnyContextMenuOpen}
-                >
-                 <AddPhotoAlternateIcon />
-                </Button>
-              </Box>
-  
-              {/* Hidden File Input for Image Upload - Managed by Charts component */}
-              <input
-                type="file"
-                ref={imageFileInputRef}
-                onChange={handleImageUpload}
-                style={{ display: 'none' }}
-                accept="image/*"
-              />
-
-
-
-              <DroppableArea onDrop={handleChartButtonClick} data={chartData}   backgroundColor={droppableBgColor}  droppableRef={droppableAreaRef} onChartLimitReached={handleChartLimitReached}  
-> 
-                {renderedCharts}
-              </DroppableArea> 
-            </Grid>
-          </Grid>
-        {/* <Tooltip title="Add a new picture to the dashboard" arrow> */}
-          <span>
-        {/* <Button 
-          variant="contained" 
-          onClick={handleSaveClick}
-          style={{
-            position: 'fixed',
-            bottom: '1px', // above the draggable bar
-            right: '25px', // aligned with the right edge of the sidebar
-            zIndex: 1000,
-            backgroundColor: '#388E3C',
-            color: '#fff',
-            minWidth: '70px',
-            paddingX: '12px',
-            fontSize: '0.75rem',
-            fontFamily: fontStyle,
-            '&:hover': {
-              backgroundColor: '#2e7d32',
-            },
+      <Tooltip title="Change Background Color" arrow>
+        <IconButton
+          onClick={handleIconClick}
+          sx={{
+            color: '#000000',
+            padding: '8px',
+            cursor: 'pointer',
+            minWidth: '40px',
+            height: '40px',
+            '&:hover': { backgroundColor: '#f0f0f0' },
           }}
         >
-          Save Dashboard
-        </Button> */}
-        {/* <Tooltip title="Save chart" arrow>
+          <PaletteIcon />
+        </IconButton>
+      </Tooltip>
+
+      <input
+        ref={colorInputRef}
+        type="color"
+        value={droppableBgColor}
+        onChange={(e) => setDroppableBgColor(e.target.value)}
+        style={{ width: 0, height: 0, opacity: 0, visibility: 'hidden', position: 'absolute' }}
+      />
+
+      <Tooltip title="Add Picture" arrow>
+        <Button
+          onClick={handleAddPictureButtonClick}
+          variant="contained"
+          sx={{
+            backgroundColor: '#ffffff',
+            color: '#000000',
+            padding: '8px',
+            cursor: 'pointer',
+            minWidth: '40px',
+            height: '40px',
+            boxShadow: 'none',
+            '&:hover': { backgroundColor: '#f0f0f0' },
+          }}
+          disabled={isModalOpenInSession || isAnyContextMenuOpen}
+        >
+          <AddPhotoAlternateIcon />
+        </Button>
+      </Tooltip>
+
+      <input type="file" ref={imageFileInputRef} onChange={handleImageUpload} style={{ display: 'none' }} accept="image/*" />
+
+      
+    </Box>
+
+    {/* MAIN LAYOUT starts below toolbar */}
+    <Grid container sx={{ height: 'calc(91.5vh - 64px)', mt: 0, pt: 0 }}>
+      {/* Sidebar */}
+      {/* <Grid
+        item
+        sx={{
+          minWidth: 90,
+          width: 160,
+          maxWidth: 200,
+          height: '100%',
+          bgcolor: appBarColor,
+          display: 'flex',
+          flexDirection: 'column',
+          p: 3,
+          gap: '4px',
+          overflowY: 'auto',
+          boxShadow: 3,
+          zIndex: 10,
+          fontFamily: fontStyle,
+          borderRight: `1px solid rgba(255, 255, 255, 0.1)`,
+        }}
+      > */}
+      <Box
+            sx={{
+              minWidth: { xs: 90, sm: 110, md: 130 },
+              width: 180,
+               top: 160,
+              height: "84.2vh",
+              bgcolor: appBarColor,
+              display: "flex",
+              flexDirection: "column",
+              p: 1.5,
+              overflowY: "auto",
+              // fontFamily: fontStyle,
+              borderRight: `1px solid ${lighten(appBarColor, 0.15)}`
+            }}
+          >
+        <Box sx={{ flexGrow: 1 }} />
+        {/* <Typography variant="h6" sx={{ mb: 2, color: '#FFFFFF', textAlign: 'center' }}>
+          Available Charts
+        </Typography> */}
+        {/* <Typography variant="h6" sx={{ color: "white", mb: 1,textAlign: 'center' }}>
+                 Charts
+              </Typography>
+         */}
+          <Box sx={{ flexShrink: 0 }}> {/* Prevents it from shrinking */}
+          <Typography variant="h6" sx={{ color: contrastIconColor, mb: 1, textAlign: 'center', fontFamily: fontStyle,mt:2 }}>
+            Charts
+          </Typography>
+          <Divider sx={{ mb: 2, bgcolor:contrastIconColor }} />
+        </Box>
+         <Box sx={{ flexGrow: 1, overflowY: "auto" }}> {/* This box will scroll */}
+                  {loadingChartsList ? (
+                    <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" height="100%">
+                      <CircularProgress size={24} sx={{ color: 'white', mb: 1 }} />
+                      <Typography variant="caption" sx={{ color: 'white', fontFamily: fontStyle }}>Loading...</Typography>
+                    </Box>
+                  ) : error ? (
+                    <Typography variant="body2" color="error" sx={{ p: 1, textAlign: 'center', fontFamily: fontStyle }}>
+                      {error}
+                    </Typography>
+                  ) : (
+                    <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {renderedDraggableButtons}
+                    </Box>
+                  )}
+                </Box>
+                </Box>
+         {/* <Box sx={{ flexGrow: 1, overflowY: "auto" }}> 
+        <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1}}>
+          {renderedDraggableButtons}
+        </Box>
+      </Box> */}
+
+      {/* Main Droppable Content */}
+      <Grid item xs sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+        <DroppableArea
+          onDrop={handleChartButtonClick}
+          data={chartData}
+          backgroundColor={droppableBgColor}
+          droppableRef={droppableAreaRef}
+          onChartLimitReached={handleChartLimitReached}
+          sx={{ flexGrow: 1 }}
+        >
+          {renderedCharts}
+        </DroppableArea>
+         <Box
+  sx={{
+    position: 'fixed',
+    bottom: 20,
+    right: 20,
+    zIndex: 9999,
+  }}
+>
   <Button
     variant="contained"
     onClick={handleSaveClick}
     sx={{
-      position: 'fixed',
-      bottom: '8px',
-      right: '20px',
-      zIndex: 1300,
       backgroundColor: '#388E3C',
       color: '#fff',
-      minWidth: '120px',
-      height: '30px',
-      paddingX: '12px',
-      fontSize: '13px',
+      minWidth: '160px',
+      height: '42px',
+      paddingX: 3,
+      fontSize: '14px',
       textTransform: 'none',
       fontFamily: fontStyle,
-      borderRadius: '4px',
-      '&:hover': {
-        backgroundColor: '#2e7d32',
-      },
+      borderRadius: '8px',
+      boxShadow: 4,
+      '&:hover': { backgroundColor: '#2e7d32' },
     }}
   >
     Save Dashboard
   </Button>
-</Tooltip>
+</Box>
 
- {!showDashboardAction && (
-  <Grid
-    item
-    xs={12}
-    sx={{
-      position: 'fixed',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      bgcolor: appBarColor,
-      height: '40px',
-      display: 'flex',
-      alignItems: 'center',
-      boxShadow: 3,
-      zIndex: 1200,
-      paddingX: '15px',
-    }}
-  >
-    <Box
-      sx={{
-        overflowX: 'auto',
-        display: 'flex',
-        alignItems: 'center',
-        width: 'calc(100% - 160px)', // room for save button
-        height: '100%',
-      }}
-    >
-      {renderedDraggableButtons}
-    </Box>
-  </Grid>
-)} */}
-{/* Save Dashboard Button with Tooltip */}
-{/* < */}
-<Grid
-          item
-          xs={12}
-          sx={{
-            position: 'fixed',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            bgcolor: appBarColor,
-            height: '40px',
-            display: 'flex',
-            alignItems: 'center',
-            boxShadow: 3,
-            zIndex: 1200,
-            paddingX: '15px',
-          }}
-        >
-          <Box
-            sx={{
-              overflowX: 'auto',
-              display: 'flex',
-              alignItems: 'center',
-              width: 'calc(100% - 160px)', // room for save button
-              height: '100%',
-            }}
-          >
-    {renderedDraggableButtons}
-  </Box>
-
-  {/* Right side: Save Button */}
-  <Tooltip title="Save Dashboard" arrow>
-    <Box
-      sx={{
-        position: 'absolute',
-        bottom: '6px',
-        right: '20px',
-      }}
-    >
-      <Button
-        variant="contained"
-        onClick={handleSaveClick}
-        sx={{
-          backgroundColor: '#388E3C',
-          color: '#fff',
-          minWidth: '120px',
-          height: '28px',
-          paddingX: 2,
-          fontSize: '13px',
-          textTransform: 'none',
-          fontFamily: fontStyle,
-          borderRadius: '4px',
-          '&:hover': {
-            backgroundColor: '#2e7d32',
-          },
-        }}
-      >
-        Save Dashboard
-      </Button>
-    </Box>
-  </Tooltip>
-</Grid>
-
-        </span>
-        {/* </Tooltip> */}
-          {/* )} */}
-        
+      </Grid>
+      
+    </Grid>
+   
         {error && <div className="error-message">{error}</div>}
-    
+
+        {/* Save Dialog */}
         <Dialog open={openDialog} onClose={() => handleDialogClose(false)}>
-        <DialogTitle>Save Dashboard</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="File Name"
-            fullWidth
-            variant="outlined"
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
-            margin="dense"
-          />
-          <TextField
-            label="Dashboard Heading"
-            fullWidth
-            variant="outlined"
-            value={heading}
-            onChange={(e) => setHeading(e.target.value)}
-            margin="dense"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => handleDialogClose(false)}>Cancel</Button>
-          <Button onClick={() => handleDialogClose(true)} color="primary">
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-       <Dialog open={isLimitDialogOpen} onClose={handleCloseLimitDialog}>
+          <DialogTitle>Save Dashboard</DialogTitle>
+          <DialogContent>
+            <TextField
+              label="Dashboard Name"
+              fullWidth
+              variant="outlined"
+              value={dashboardName}
+              onChange={(e) => setDashboardName(e.target.value)}
+              margin="dense"
+            />
+            <TextField
+              label="Project Name"
+              fullWidth
+              variant="outlined"
+              value={projectName}
+              onChange={(e) => setProjectName(e.target.value)}
+              margin="dense"
+            />
+            <TextField
+              label="Dashboard Heading"
+              fullWidth
+              variant="outlined"
+              value={heading}
+              onChange={(e) => setHeading(e.target.value)}
+              margin="dense"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => handleDialogClose(false)}>Cancel</Button>
+            <Button onClick={() => handleDialogClose(true)} color="primary">Save</Button>
+          </DialogActions>
+        </Dialog>
+
+        {/* Chart Limit Dialog */}
+        <Dialog open={isLimitDialogOpen} onClose={handleCloseLimitDialog}>
           <DialogTitle>Chart Limit Reached</DialogTitle>
           <DialogContent>
             <Typography>You can only add a maximum of 8 charts to the dashboard.</Typography>
@@ -644,63 +732,33 @@ setSnackbarOpen(true);
           </DialogActions>
         </Dialog>
 
-        {/* {!showDashboardAction && (
-        <Grid item xs={12} sx={{ 
-          overflowX: 'auto', 
-          overflowY: 'hidden', 
-          position: 'fixed', 
-          bottom: 0, 
-          left: 0, 
-          right: 0, 
-          bgcolor: appBarColor, 
-          boxShadow: 3, 
-          height: '25px', 
-          marginBottom: '0px', 
-          marginLeft: '1px', 
-          marginRight: '1px', 
-          paddingBottom: '15px' 
-          }}> 
-          <Box sx={{ 
-          
-            overflowY: "auto",
-                  position: "fixed",
-                  bottom: '0px',
-                  left: 0,
-                  right: 160,
-                  bgcolor: appBarColor,
-                  // overflowX: "auto",
-                  display: "flex",
-                  alignItems: "center",
-                  height: "25px",
-                  paddingX: "15px",
-                  
-                  boxShadow: 3}}>
-            {renderedDraggableButtons}
-          </Box>
-        </Grid>
-        )} */}
-       
+        {/* Snackbar Notification */}
+        {/* <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={4000}
+          onClose={() => setSnackbarOpen(false)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <MuiAlert
+            onClose={() => setSnackbarOpen(false)}
+            severity={snackbarSeverity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbarMessage}
+          </MuiAlert>
+        </Snackbar> */}
+        <CustomAlertDialog
+  open={dialogOpen}
+  onClose={handleCloseDialog}
+  title={dialogTitle}
+  message={dialogMessage}
+  type={dialogType}
+/>
 
       </div>
-      <Snackbar
-  open={snackbarOpen}
-  autoHideDuration={4000}
-  onClose={() => setSnackbarOpen(false)}
-  anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
->
-  <MuiAlert
-    onClose={() => setSnackbarOpen(false)}
-    severity={snackbarSeverity}
-    variant="filled"
-    sx={{ width: '100%' }}
-  >
-    {snackbarMessage}
-  </MuiAlert>
-</Snackbar>
-
     </DndProvider>
   );
 }
 
 export default Charts;
-

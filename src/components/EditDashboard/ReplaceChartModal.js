@@ -20,7 +20,7 @@ const ReplaceChartModal = ({ openReplaceModal, setOpenReplaceModal, chartNamesAr
             {chartNamesArray.map((chart) => (
               <ListItem key={chart} disablePadding>
                 <ListItemButton onClick={() => handleSelectChart(chart)}>
-                  <Typography sx={{fontFamily:fontStyle}}>{chart}</Typography>
+                  <Typography sx={{fontFamily:fontStyle}}>{Array.isArray(chart)? chart[1]:chart}  </Typography>
                 </ListItemButton>
               </ListItem>
             ))}
@@ -28,7 +28,8 @@ const ReplaceChartModal = ({ openReplaceModal, setOpenReplaceModal, chartNamesAr
         ) : (
           chartNamesArray.map((chart) => (
             <Button key={chart} onClick={() => handleSelectChart(chart)} sx={{ display: 'block', mt: 1, width:'100%'}}>
-              {chart}
+             {Array.isArray(chart)? chart[1]:chart}  
+              {/* {chart} */}
             </Button>
           ))
         )
