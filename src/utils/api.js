@@ -558,11 +558,13 @@ export const signIn = async (email, password, company) => {
           sessionStorage.setItem('user_role_permisiion', userData.permissions);
         }
       } else if (userType === 'user' && userData) {
+        const user = userData.user;
+        console.log("userssssdsada",user)
         // Handle regular user data
-        sessionStorage.setItem('user_id', userData.user_id || userData.id);
-        sessionStorage.setItem('user_name', userData.name || userData.username);
+        sessionStorage.setItem('user_id', userData.user[0] || userData.id);
+        sessionStorage.setItem('user_name', userData.user[1] || userData.username);
         sessionStorage.setItem('user_role', userData.role || 'user');
-        sessionStorage.setItem('user_email', userData.email);
+        sessionStorage.setItem('user_email', userData.user[2]);
       }
 
       // Store common data
