@@ -6,7 +6,7 @@
 
 import React,{useEffect,useState} from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setFile, setColumnHeadings, setPrimaryKeyColumn, uploadJson } from '../../features/jsonFileSlice/jsonFileSlice';
+import { setFile, setColumnHeadings, setPrimaryKeyColumn, uploadJson,resetUploadStatus  } from '../../features/jsonFileSlice/jsonFileSlice';
 import CssBaseline from '@mui/material/CssBaseline';
 import SaveIcon from '@mui/icons-material/Save';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -235,7 +235,7 @@ console.log('fontStyle:', fontStyle);
   //     setSnackbarOpen(true);
   //   }
   // }, [uploadError, uploadSuccess]);
-  React.useEffect(() => {
+    React.useEffect(() => {
   if (uploadError) {
     // Show error dialog
     setDialogTitle('Error');
@@ -244,6 +244,7 @@ console.log('fontStyle:', fontStyle);
     );
     setDialogType('error');
     setDialogOpen(true);
+    dispatch(resetUploadStatus()); // <-- reset Redux state
   } else if (uploadSuccess) {
     // Show success dialog
     const message =
@@ -255,6 +256,14 @@ console.log('fontStyle:', fontStyle);
     setDialogMessage(message);
     setDialogType('success');
     setDialogOpen(true);
+    const timer = setTimeout(() => {
+      setDialogOpen(false);
+    }, 6000);
+
+    dispatch(resetUploadStatus()); // <-- reset Redux state
+
+    return () => clearTimeout(timer);
+  
   }
 }, [uploadError, uploadSuccess]);
  const formatRowCount = (count) => {
@@ -378,18 +387,18 @@ const columnHeaders = flattenedJsonData.length > 0 ? Object.keys(flattenedJsonDa
         dispatch(setPrimaryKeyColumn(primaryKeyColumnIndex));
 
 
-        // setSnackbarMessage(
-        //   `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
-        // );
-        // setSnackbarSeverity('success');
-        // setSnackbarOpen(true);
+        setSnackbarMessage(
+          `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
+        );
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
          // Show success dialog
-          setDialogTitle('Success');
-          setDialogMessage(
-           `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
-          );
-          setDialogType('success');
-          setDialogOpen(true);
+          // setDialogTitle('Success');
+          // setDialogMessage(
+          //  `JSON parsed. ${flattenedData.length.toLocaleString()} rows, ${headers.length} columns.`
+          // );
+          // setDialogType('success');
+          // setDialogOpen(true);
           
           setActiveStep(1);
         setActiveStep(1);

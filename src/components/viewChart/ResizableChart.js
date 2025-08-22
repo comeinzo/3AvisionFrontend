@@ -21,6 +21,7 @@ import TreeHierarchyView from '../ChartViews/treeHierarchyView';
 import TextChartView from '../ChartViews/textChartView';
 import DuelBarChart from '../ChartViews/duelBarChartView';
 import WordCloud from '../ChartViews/wordCloudView';
+import FunnelChart from '../ChartViews/funnelChartView.js';
 import { useDispatch, useSelector, shallowEqual } from 'react-redux';
 import {sendChartData, sendChartDetails} from "../../utils/api";
 import { addTextChart, addChartData, removeChartData, updateSelectedCategory, updateChartAreaColor,updateChartOpacity } from '../../features/ViewChartSlice/viewChartSlice';
@@ -771,6 +772,16 @@ const handleOpacityChange = useCallback(
           />;
         }
         break;
+        case 'funnel':
+          if (chartDataFromStore?.categories?.length > 0 && chartDataFromStore?.values?.length > 0) {
+            return <FunnelChart
+              categories={chartDataFromStore.categories} 
+              values={chartDataFromStore.values.map(value => parseFloat(value))} 
+              
+              {...commonChartProps} 
+            />;
+          }
+          break;
            
       default:
         return <div></div>;

@@ -40,6 +40,10 @@ const loadJsonFileSlice = createSlice({
       state.uploading = false;
       state.uploadSuccess = false;
       state.uploadError = action.payload;
+          },
+     resetUploadStatus(state) {
+      state.uploadSuccess = false;
+      state.uploadError = null;
     },
     resetState(state) {
       return initialState;
@@ -54,7 +58,7 @@ export const {
   startUploading,
   uploadSuccess,
   uploadFailure,
-  resetState,
+  resetState,resetUploadStatus
 } = loadJsonFileSlice.actions;
 
 export default loadJsonFileSlice.reducer;

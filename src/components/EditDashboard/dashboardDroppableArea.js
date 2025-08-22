@@ -218,18 +218,38 @@ const [alignmentLines, setAlignmentLines] = useState({
         if (selectedChartIndex !== null) {
           dispatch(replaceChart({ index: selectedChartIndex, newChart }));
           setOpenReplaceModal(false);
-        } else if (addChartPosition !== null) {
-          dispatch(addChart(newChart));
+        // } else if (addChartPosition !== null) {
+        //   dispatch(addChart(newChart));
+        //   setAddChartModalOpen(false);
+        //   dispatch(addChartPosition({
+        //     chartName: chart_id,
+        //     x: oldChartPosition.x,
+        //     y: oldChartPosition.y,
+        //     width: newChart.size.width,
+        //     height: newChart.size.height,
+        //   }));
+        //   setAddChartPosition(null);
+        // }
+         }else if (addChartPosition !== null) {
+          const firstEmpty = emptyPositions[0] || { x: 0, y: 0, width: 350, height: 400 };
+
+          dispatch(addChart({
+            ...newChart,
+            position: { x: firstEmpty.x, y: firstEmpty.y },
+            size: { width: firstEmpty.width || 350, height: firstEmpty.height || 400 }
+          }));
+
           setAddChartModalOpen(false);
           dispatch(addChartPosition({
             chartName: chart_id,
-            x: oldChartPosition.x,
-            y: oldChartPosition.y,
+            x: firstEmpty.x,
+            y: firstEmpty.y,
             width: newChart.size.width,
             height: newChart.size.height,
           }));
           setAddChartPosition(null);
         }
+
       } catch (error) {
         console.error(`Error fetching data for Chart ${newChartType}:`, error);
       }
@@ -473,7 +493,7 @@ onResize={(e, direction, ref, delta, position) => {
               border: "1px solid black",
               cursor: "move",
               userSelect: "none",     // prevent selection
-    pointerEvents: "none"   // ensure it still gets click events
+    // pointerEvents: "none"   // ensure it still gets click events
             }}
             // onContextMenu={(event) => {
             //   event.preventDefault();

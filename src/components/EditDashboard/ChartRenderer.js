@@ -25,6 +25,7 @@ import BubbleChart  from '../ChartViews/bubbleChartView.js';
 import TableChart from '../ChartViews/tableChartView.js';
 import TrendChart from '../ChartViews/TrendChartView.js';
 import StackedBarChart from '../ChartViews/stackekBarView.js';
+import FunnelChart from '../ChartViews/funnelChartView.js';
 import MeterGaugeChart from '../ChartViews/meterGaugeChartView.js';
 const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
   console.log("areaColor",chart.Bgcolour)
@@ -591,6 +592,31 @@ const ChartRenderer = ({ chart, initialWidth, initialHeight }) => {
          disableInteraction={true}
          opacity={chart.opacity}
         selectedFrequency={chart.selectedFrequency}
+        />
+      );
+        case 'funnel':
+        return (
+       <FunnelChart
+          categories={chart.categories}
+          values={chart.values}
+          x_axis={chart.x_axis}
+          y_axis={chart.y_axis}
+          aggregation={chart.aggregate}
+          xFontSize={chart.xfontsize}
+          fontStyle={chart.fontstyle} 
+          categoryColor={chart.categorycolor}
+          yFontSize={chart.yfontsize}
+          valueColor={chart.valuecolor}
+          customHeadings={chart.chart_heading}
+          width={initialWidth}
+          height={initialHeight}
+          headingColor={chart.headingColor}
+          ClickedTool={chart.ClickedTool}
+          areaColor={chart.Bgcolour}
+          disableInteraction={true}
+          chartColor={chart.chart_color}
+          
+          opacity={chart.opacity}
         />
       );
       

@@ -6,7 +6,7 @@
 
 import React, { useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setFile, setColumnHeadings, setPrimaryKeyColumn, uploadExcel } from '../../features/excelFileSlice/excelFileSlice';
+import { setFile, setColumnHeadings, setPrimaryKeyColumn, uploadExcel,resetUploadStatus  } from '../../features/excelFileSlice/excelFileSlice';
 import CssBaseline from '@mui/material/CssBaseline';
 import SaveIcon from '@mui/icons-material/Save';
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -611,6 +611,7 @@ const handleConfirmClose = (result) => {
       setDialogMessage(uploadError.message);
       setDialogType('error');
       setDialogOpen(true);
+      dispatch(resetUploadStatus()); // <-- reset Redux state
       
     } else if (uploadSuccess) {
       setDialogTitle('Success');
@@ -627,8 +628,16 @@ const handleConfirmClose = (result) => {
       setExcelData([]);
       setTotalColumns(0);
       setTotalRows(0);
-    }
+    const timer = setTimeout(() => {
+          setDialogOpen(false);
+        }, 6000);
+    
+        dispatch(resetUploadStatus()); // <-- reset Redux state
+    
+        return () => clearTimeout(timer);
+      }
   }, [uploadError, uploadSuccess, dispatch]);
+
 
 
   React.useEffect(() => {
@@ -700,10 +709,14 @@ const handleConfirmClose = (result) => {
         setSheetNames(sheetNames);
         setActiveStep(1);
         setProcessingStep('Sheet names loaded!');
-        setDialogTitle('Success');
-        setDialogMessage(`Found ${sheetNames.length} sheet(s). Select a sheet to view columns.`);
-        setDialogType('success');
-        setDialogOpen(true);
+        // setDialogTitle('Success');
+        // setDialogMessage(`Found ${sheetNames.length} sheet(s). Select a sheet to view columns.`);
+        // setDialogType('success');
+            setSnackbarMessage(`Found ${sheetNames.length} sheet(s). Select a sheet to view columns.`);
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+      
+        // setDialogOpen(true);
       } catch (error) {
         console.error('Error processing file:', error);
         setDialogTitle('Error');
@@ -895,12 +908,17 @@ const handleConfirmClose = (result) => {
       
       const estimatedText = result.isEstimated ? ' (estimated)' : '';
       
-      setDialogTitle('Success');
-      setDialogMessage(
+      // setDialogTitle('Success');
+      // setDialogMessage(
+      //   `Sheet "${sheetName}" loaded in ${processingTime.toFixed(0)}ms! Contains ${rowCountText} rows${estimatedText} with ${result.totalColumns} columns.`
+      // );
+      // setDialogType('success');
+      // setDialogOpen(true);
+      setSnackbarMessage(
         `Sheet "${sheetName}" loaded in ${processingTime.toFixed(0)}ms! Contains ${rowCountText} rows${estimatedText} with ${result.totalColumns} columns.`
       );
-      setDialogType('success');
-      setDialogOpen(true);
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
       
     } catch (error) {
       console.error('Error processing sheet:', error);

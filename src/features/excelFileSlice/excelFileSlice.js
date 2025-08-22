@@ -44,6 +44,10 @@ const excelFileSlice = createSlice({
       state.uploadProgress = action.payload;  // Update progress
     },
   },
+   resetUploadStatus(state) {
+      state.uploadSuccess = false;
+      state.uploadError = null;
+    },
   extraReducers: (builder) => {
     builder
       .addCase(uploadExcel.pending, (state) => {
@@ -67,5 +71,5 @@ const excelFileSlice = createSlice({
   },
 });
 
-export const { setFile, setColumnHeadings, setPrimaryKeyColumn,setUploadProgress}= excelFileSlice.actions;
+export const { setFile, setColumnHeadings, setPrimaryKeyColumn,setUploadProgress,resetUploadStatus}= excelFileSlice.actions;
 export default excelFileSlice.reducer;

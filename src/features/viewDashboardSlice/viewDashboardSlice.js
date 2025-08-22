@@ -15,7 +15,8 @@ const initialState = {
   imagePositions: [],
 fontSize:'',
  fontColor:'', 
- fontStyleState:''
+ fontStyleState:'',
+  wallpaper: null,
 };
 
 const viewChartSlice = createSlice({
@@ -38,7 +39,7 @@ const viewChartSlice = createSlice({
       state.selectedCategory=null;
       state.droppableBgColor=[];
        state.imagePositions=[];
-       state.lastChartName = null;
+      //  state.lastChartName = null;
     },
     updateChartData: (state, action) => {
       const { chart_id, categories, values } = action.payload;
@@ -89,9 +90,19 @@ const viewChartSlice = createSlice({
     updateSelectedCategory_xaxis: (state, action) => {
       state.selectedCategory_xaxis = action.payload;
     },
-    toggleDataLabels(state) {
-      state.showDataLabels = !state.showDataLabels; // <== Toggle
+    // toggleDataLabels(state) {
+      // state.showDataLabels = !state.showDataLabels; // <== Toggle
+        toggleDataLabels(state, action) {
+          if (typeof action.payload === "boolean") {
+            state.showDataLabels = action.payload; // set true/false
+          } else {
+            state.showDataLabels = !state.showDataLabels; // toggle if no payload
+          }
     },
+      setWallpaper: (state, action) => {
+  state.wallpaper = action.payload;
+},
+
     setLastChartName: (state, action) => {
     state.lastChartName = action.payload;
   },
@@ -122,7 +133,7 @@ export const {
   removeChartData,
   updateSelectedCategory,
   setChartStatus,
-  updateSelectedCategory_xaxis,clearDashboardCharts,setDashboardFilters,setDashboardHeading ,toggleDataLabels,setdroppableBgColor,setLastChartName,setImagePositions,setFontColor,setFontStyleLocal,setFontSize 
+  updateSelectedCategory_xaxis,clearDashboardCharts,setDashboardFilters,setDashboardHeading ,toggleDataLabels,setdroppableBgColor,setLastChartName,setImagePositions,setFontColor,setFontStyleLocal,setFontSize ,setWallpaper 
 } = viewChartSlice.actions;
 
 export default viewChartSlice.reducer;

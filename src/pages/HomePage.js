@@ -18,6 +18,7 @@ import UserProfile from "../components/profile/userProfile";
 import ShowSecondNavbar from './seconsNavBar';
 import { resetState } from '../features/Dashboard-Slice/chartSlice';
 import { setAppBarColor, setFontStyle } from '../features/Charts/barColorSlice';
+import { getContrastColor } from '../utils/colorUtils'; 
 
 function Navbar() {
   const appBarColor = useSelector((state) => state.barColor.appBarColor) || '#1976d2';
@@ -29,7 +30,7 @@ function Navbar() {
   const [username, setUsername] = React.useState(sessionStorage.getItem('user_name'));
   const [showSecondNavbar, setShowSecondNavbar] = React.useState(false);
   const [openSettings, setOpenSettings] = React.useState(false);
-
+const contrastColor = getContrastColor(appBarColor);
   // Temporary states for dialog changes
   const [tempAppBarColor, setTempAppBarColor] = React.useState(appBarColor);
   const [tempFontStyle, setTempFontStyle] = React.useState(fontStyle);
@@ -361,17 +362,18 @@ React.useEffect(() => {
         }}
       >
         <Toolbar sx={{ minHeight: '40px', px: 2 }}>
-          <IconButton color="inherit" edge="start" size="small">
+          {/* <IconButton color="inherit" edge="start" size="small"> */}
+          <IconButton sx={{ color: contrastColor }} edge="start" size="small">
             <MenuIcon />
           </IconButton>
 
-          <UserProfile username={username} appBarColor={appBarColor} />
+          <UserProfile username={username} appBarColor={appBarColor} contrastColor={contrastColor} />
 
           <Box sx={{ flexGrow: 1 }} />
 
           <Typography
             component="div"
-            sx={{ fontSize: '12px', cursor: 'pointer', mr: 2 }}
+            sx={{ fontSize: '12px', cursor: 'pointer', mr: 2,color: contrastColor, }}
             onClick={handleLoginLogout}
           >
             {isLoggedIn ? 'Logout' : 'Login'}
@@ -379,7 +381,7 @@ React.useEffect(() => {
 
           <IconButton
             sx={{
-              color: 'white',
+              color: contrastColor,
               bgcolor: 'rgba(255, 255, 255, 0.15)',
               '&:hover': { bgcolor: 'rgba(255, 255, 255, 0.25)' },
               transition: '0.3s'
@@ -490,7 +492,7 @@ React.useEffect(() => {
             variant="contained"
             sx={{
               backgroundColor: tempAppBarColor,
-              color: '#fff',
+              color: contrastColor,
               textTransform: 'none',
               fontWeight: 500,
               '&:hover': {

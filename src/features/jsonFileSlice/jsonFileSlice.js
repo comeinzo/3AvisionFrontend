@@ -71,4 +71,4 @@ export const uploadJson = createAsyncThunk(
   }
 );
 
-export { setFile, setColumnHeadings, setPrimaryKeyColumn } from './LoasJsonFileSlice';
+export { setFile, setColumnHeadings, setPrimaryKeyColumn,resetUploadStatus } from './LoasJsonFileSlice';

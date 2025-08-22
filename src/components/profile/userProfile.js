@@ -19,7 +19,7 @@ import {
 } from "@mui/material";
 import PhotoCameraIcon from "@mui/icons-material/PhotoCamera";
 import { useSelector } from "react-redux";
-const UserProfile = ({ appBarColor = "#1976d2", username = "User" }) => {
+const UserProfile = ({ appBarColor = "#1976d2", username = "User",contrastColor  }) => {
   const [openModal, setOpenModal] = useState(false);
   const [logo, setLogo] = useState("");
   const theme = useTheme();
@@ -54,6 +54,7 @@ const UserProfile = ({ appBarColor = "#1976d2", username = "User" }) => {
           onClick={handleProfileClick}
           sx={{
             p: 0,
+             color: contrastColor,
             borderRadius: "50%",
             transition: "transform 0.2s ease-in-out",
             "&:hover": {
@@ -85,7 +86,7 @@ const UserProfile = ({ appBarColor = "#1976d2", username = "User" }) => {
       </Tooltip>
 
       {/* Greeting */}
-      <Typography variant="subtitle1" sx={{ color: "white", fontWeight: 500,fontFamily:fontStyle }}>
+       <Typography variant="subtitle1" sx={{ color: contrastColor, fontWeight: 500,fontFamily:fontStyle }}>
         Hello, {username}
       </Typography>
 

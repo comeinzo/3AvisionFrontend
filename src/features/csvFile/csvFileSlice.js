@@ -47,6 +47,10 @@ const csvFileSlice = createSlice({
       state.primaryKeyColumn = action.payload;
     },
   },
+   resetUploadStatus(state) {
+      state.uploadSuccess = false;
+      state.uploadError = null;
+    },
   extraReducers: (builder) => {
     builder
       .addCase(uploadCsv.pending, (state) => {
@@ -70,6 +74,6 @@ const csvFileSlice = createSlice({
 });
 
 // Export actions for setting file, column headings, and primary key column
-export const { setFile, setColumnHeadings, setPrimaryKeyColumn } = csvFileSlice.actions;
+export const { setFile, setColumnHeadings, setPrimaryKeyColumn,resetUploadStatus } = csvFileSlice.actions;
 // Export the reducer for the slice
 export default csvFileSlice.reducer;

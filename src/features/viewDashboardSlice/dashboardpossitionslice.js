@@ -3,7 +3,8 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   chartPositions: [], // Store chart positions in Redux
-  images: []
+  images: [],
+    wallpaper: null,
 };
 
 const viewchartspostion = createSlice({
@@ -52,6 +53,9 @@ const viewchartspostion = createSlice({
     clearAllImages: (state) => {
       state.images = [];
     },
+     setWallpaper: (state, action) => {
+  state.wallpaper = action.payload;
+},
      resetDahboardState: () => {
   return initialState;
 }
@@ -69,7 +73,7 @@ export const {
   updateImage,
   removeImage,
   setImages,
-  clearAllImages,resetDahboardState
+  clearAllImages,resetDahboardState,setWallpaper
 } = viewchartspostion.actions;
 
 export default viewchartspostion.reducer;
