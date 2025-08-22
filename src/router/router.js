@@ -37,10 +37,13 @@ import DesignPage from '../pages/Pages/DesignPage';
 import EditPage from '../pages/Pages/EditPgae';
 import ViewPage from '../pages/Pages/ViewPage';
 import Xaxistest from '../components/chartCreation/xAxis';
+   import ResetPassword from "../pages/loginPage/ResetPassword";
 const AppRouter = () => {
   return (
     <Routes>
       {/* Upload Page Routes */}
+
+<Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/excel_upload" element={<ExcelUpload />} />
       <Route path="/csv_upload" element={<CsvUpload />} />
       <Route path="/audio_upload" element={<AudioFile />} />

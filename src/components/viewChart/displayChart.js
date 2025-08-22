@@ -9,7 +9,7 @@ import DraggableChartButton from './DraggableChartButton';
 import DroppableArea from './DroppableArea';
 import ResizableChart from './ResizableChart';
 import { saveAllCharts, fetchSingleChartData, checkFileNameExists } from '../../utils/api';
-import { Box,Divider,CircularProgress, Grid, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box,Divider,CircularProgress, Grid,Paper, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, IconButton, Tooltip } from "@mui/material";
 import PaletteIcon from '@mui/icons-material/Palette';
 import { useRef } from 'react';
 import {useNavigate} from "react-router";
@@ -169,7 +169,7 @@ const contrastIconColor = getContrastColor(appBarColor);
 //   }, [dispatch, user_id]);
  useEffect(() => {
     // Dispatch the action to set dataLabels to true when the component mounts
-    dispatch(toggleDataLabels("true"));
+     dispatch(toggleDataLabels(true));
   }, [dispatch]); // The dependency array ensures it runs once on mount
 
   useEffect(() => {
@@ -504,7 +504,7 @@ return (
  <HomePage />
 
     {/* Toolbar ABOVE sidebar and content */}
-    <Box
+    {/* <Box
       sx={{
         display: 'flex',
         justifyContent: 'flex-start',
@@ -563,7 +563,95 @@ return (
       <input type="file" ref={imageFileInputRef} onChange={handleImageUpload} style={{ display: 'none' }} accept="image/*" />
 
       
-    </Box>
+    </Box> */}
+ <Paper
+  elevation={6}
+  sx={{
+    position: "fixed",
+    // bottom: 20,
+    // left: "50%",
+    // transform: "translateX(-50%)",
+    top: "50%",
+right: 20,
+transform: "translateY(-50%)",
+flexDirection: "column",   // 👈 stack vertically
+
+    bgcolor: appBarColor,
+    borderRadius: "50px",
+    px: 2,
+    py: 2,
+    display: "flex",
+    alignItems: "center",
+    flexWrap: "nowrap",      // 👈 prevent wrapping
+    gap: 1.5,
+    boxShadow: "0px 4px 12px rgba(0,0,0,0.3)",
+    overflowX: "auto",       // 👈 allow horizontal scroll if too many buttons
+    zIndex: 2000,
+  }}
+>
+
+  {/* Background Color Picker */}
+  <Tooltip title="Change Background Color" arrow>
+    <IconButton
+      onClick={handleIconClick}
+      sx={{
+        // color: "#ffffff",
+        color: contrastIconColor,
+        padding: "8px",
+        cursor: "pointer",
+        minWidth: "40px",
+        height: "40px",
+        // "&:hover": { backgroundColor: "#f0f0f0" },
+        "&:hover": { backgroundColor: lighten(appBarColor, 0.2) }, // 20% lighter
+      }}
+    >
+      <PaletteIcon />
+    </IconButton>
+  </Tooltip>
+
+  <input
+    ref={colorInputRef}
+    type="color"
+    value={droppableBgColor}
+    onChange={(e) => setDroppableBgColor(e.target.value)}
+    style={{
+      width: 0,
+      height: 0,
+      opacity: 0,
+      visibility: "hidden",
+      position: "absolute",
+    }}
+  />
+
+  {/* Add Picture */}
+  <Tooltip title="Add Picture" arrow>
+    <IconButton
+      onClick={handleAddPictureButtonClick}
+      sx={{
+        // backgroundColor: "#ffffff",
+        // color:" #ffffff",
+        color: contrastIconColor,
+        padding: "8px",
+        minWidth: "40px",
+        height: "40px",
+        // "&:hover": { backgroundColor: "#f0f0f0" },
+        "&:hover": { backgroundColor: lighten(appBarColor, 0.2) }, // 20% lighter
+      }}
+      disabled={isModalOpenInSession || isAnyContextMenuOpen}
+    >
+      <AddPhotoAlternateIcon />
+    </IconButton>
+  </Tooltip>
+  
+
+  <input
+    type="file"
+    ref={imageFileInputRef}
+    onChange={handleImageUpload}
+    style={{ display: "none" }}
+    accept="image/*"
+  />
+</Paper>
 
     {/* MAIN LAYOUT starts below toolbar */}
     <Grid container sx={{ height: 'calc(91.5vh - 64px)', mt: 0, pt: 0 }}>
@@ -592,7 +680,7 @@ return (
               minWidth: { xs: 90, sm: 110, md: 130 },
               width: 180,
                top: 160,
-              height: "84.2vh",
+              height: "91.7vh",
               bgcolor: appBarColor,
               display: "flex",
               flexDirection: "column",

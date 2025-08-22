@@ -5,7 +5,7 @@ import {
   setFile,
   setColumnHeadings,
   setPrimaryKeyColumn,
-  uploadCsv,
+  uploadCsv,resetUploadStatus
 } from '../../features/csvFile/csvFileSlice';
 import CustomAlertDialog from '../../components/DashboardActions/CustomAlertDialog'; // Import the new component
 import ConfirmationDialog from '../../components/DashboardActions/ConfirmationDialog';
@@ -258,28 +258,37 @@ const handleDialogClose = () => {
   // }, [navigate]);
 
   // Handle upload status snackbar
-  useEffect(() => {
-    if (uploadError) {
-      const message =
-        typeof uploadError === 'object'
-          ? uploadError.message || JSON.stringify(uploadError)
-          : uploadError;
+ useEffect(() => {
+  if (uploadError) {
+    const message =
+      typeof uploadError === 'object'
+        ? uploadError.message || JSON.stringify(uploadError)
+        : uploadError;
     setDialogTitle('Error');
-    setDialogMessage(uploadError.message);
+    setDialogMessage(message);
     setDialogType('error');
     setDialogOpen(true);
-    } else if (uploadSuccess) {
-      const message =
-        typeof uploadSuccess === 'object'
-          ? uploadSuccess.message || JSON.stringify(uploadSuccess)
-          : 'File uploaded successfully...';
-       setDialogTitle('Success');
+
+    dispatch(resetUploadStatus()); // <-- reset Redux state
+  } else if (uploadSuccess) {
+    const message =
+      typeof uploadSuccess === 'object'
+        ? uploadSuccess.message || JSON.stringify(uploadSuccess)
+        : 'File uploaded successfully...';
+    setDialogTitle('Success');
     setDialogMessage(message);
     setDialogType('success');
     setDialogOpen(true);
-    }
-  }, [uploadError, uploadSuccess]);
 
+    const timer = setTimeout(() => {
+      setDialogOpen(false);
+    }, 6000);
+
+    dispatch(resetUploadStatus()); // <-- reset Redux state
+
+    return () => clearTimeout(timer);
+  }
+}, [uploadError, uploadSuccess, dispatch]);
   // Update active step based on file and primary key
   useEffect(() => {
     if (file && primaryKeyColumn === null) {
@@ -299,118 +308,6 @@ const handleDialogClose = () => {
     return count.toLocaleString();
   };
 
-  // const handleFileChange = async (e) => {
-  //   const selectedFile = e.target.files[0];
-  //   if (!selectedFile) return;
-
-  //   if (selectedFile.type !== 'text/csv') {
-  //     dispatch(setFile(null));
-  //     setSnackbarMessage('Please upload a valid CSV file.');
-  //     setSnackbarSeverity('error');
-  //     setSnackbarOpen(true);
-  //     setIsProcessing(false);
-  //     return;
-  //   }
-
-  //   dispatch(setFile(selectedFile));
-  //   setCsvData([]);
-  //   setTotalRows(0);
-  //   setTotalColumns(0);
-  //   setIsProcessing(true);
-  //   setProcessingStep('Parsing CSV...');
-  //   setFileProcessingProgress(0);
-
-  //   try {
-  //     const startTime = performance.now();
-  //     let currentProgress = 10;
-
-  //     const progressTimer = setInterval(() => {
-  //       if (currentProgress < 90) {
-  //         currentProgress += 10;
-  //         setFileProcessingProgress(currentProgress);
-  //         setProcessingStep(`Parsing CSV... ${currentProgress}%`);
-  //       }
-  //     }, 50);
-
-  //     Papa.parse(selectedFile, {
-  //       header: true,
-  //       worker: true,
-  //       complete: (results) => {
-  //         clearInterval(progressTimer);
-  //         try {
-  //           let data = results.data;
-  //           if (!data || data.length === 0) {
-  //             throw new Error('The uploaded CSV file is empty or contains no data rows.');
-  //           }
-
-  //           const headers = Object.keys(data[0]);
-  //           let primaryKeyColumnIndex = null;
-
-  //           // Find a column with all unique values for primary key
-  //           for (let i = 0; i < headers.length; i++) {
-  //             const uniqueValues = new Set(data.map((row) => row[headers[i]]));
-  //             if (uniqueValues.size === data.length) {
-  //               primaryKeyColumnIndex = i;
-  //               break;
-  //             }
-  //           }
-
-  //           // If no unique column, add 'id' column
-  //           if (primaryKeyColumnIndex === null) {
-  //             const newColumnName = 'id';
-  //             data = data.map((row, index) => ({ [newColumnName]: index + 1, ...row }));
-  //             headers.unshift(newColumnName);
-  //           }
-
-  //           setCsvData(data.slice(0, 5));
-  //           setTotalRows(data.length);
-  //           setTotalColumns(headers.length);
-  //           dispatch(setColumnHeadings(headers));
-  //           dispatch(setPrimaryKeyColumn(primaryKeyColumnIndex ?? 0));
-
-  //           const endTime = performance.now();
-  //           const processingTime = endTime - startTime;
-
-  //           const rowCountText =
-  //             data.length > 1000
-  //               ? `${(data.length / 1000).toFixed(1)}K`
-  //               : data.length.toLocaleString();
-
-  //           setSnackbarMessage(
-  //             `CSV parsed in ${processingTime.toFixed(0)}ms. ${rowCountText} rows, ${headers.length} columns.`
-  //           );
-  //           setSnackbarSeverity('success');
-  //           setSnackbarOpen(true);
-  //           setActiveStep(1);
-  //         } catch (error) {
-  //           setSnackbarMessage(error.message || 'Error processing CSV data.');
-  //           setSnackbarSeverity('error');
-  //           setSnackbarOpen(true);
-  //         } finally {
-  //           setIsProcessing(false);
-  //           setProcessingStep('');
-  //           setFileProcessingProgress(0);
-  //         }
-  //       },
-  //       error: () => {
-  //         clearInterval(progressTimer);
-  //         setSnackbarMessage('Error parsing CSV file.');
-  //         setSnackbarSeverity('error');
-  //         setSnackbarOpen(true);
-  //         setIsProcessing(false);
-  //         setProcessingStep('');
-  //         setFileProcessingProgress(0);
-  //       },
-  //     });
-  //   } catch (error) {
-  //     setSnackbarMessage(`Unexpected error: ${error.message}`);
-  //     setSnackbarSeverity('error');
-  //     setSnackbarOpen(true);
-  //     setIsProcessing(false);
-  //     setProcessingStep('');
-  //     setFileProcessingProgress(0);
-  //   }
-  // };
   const handleFileChange = async (e) => {
   const selectedFile = e.target.files[0];
   if (!selectedFile) return;
@@ -505,6 +402,7 @@ const handleDialogClose = () => {
           setDialogMessage(error.message || 'Error processing CSV data.');
           setDialogType('error');
           setDialogOpen(true);
+           
         } finally {
           setIsProcessing(false);
           setProcessingStep('');

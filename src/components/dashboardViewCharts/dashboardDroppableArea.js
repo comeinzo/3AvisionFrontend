@@ -32,6 +32,7 @@ import IconButton from '@mui/material/IconButton';
 import TrendChart from '../ChartViews/TrendChartView.js';
 import StackedBarChart from '../ChartViews/stackekBarView.js';
 import MeterGaugeChart from '../ChartViews/meterGaugeChartView.js';
+import FunnelChart from '../ChartViews/funnelChartView.js';
 import {
   Typography
 } from "@mui/material";
@@ -49,6 +50,7 @@ const dashboardHeading= useSelector((state) => state.viewdashboard.DashboardHead
   const fontStyleState = useSelector((state) => state.viewdashboard.fontStyleState) || 'normal';
   const fontColor = useSelector((state) => state.viewdashboard.fontColor) || 'black';
   const fontSize = useSelector((state) => state.viewdashboard.fontSize) || '32';
+   const wallpaper = useSelector((state) => state.viewdashboard.wallpaper); // <-- Add this
   console.log("DASHBOARD HEADING colour ===>", fontColor);
 
   console.log("DASHBOARD HEADING style ===>", fontStyleState);
@@ -101,22 +103,38 @@ console.log("DASHBOARD HEADING VALUE ===>", dashboardHeading);
   )}
 <div
   ref={droppableAreaRef}
+  // style={{
+  //   position: 'relative',
+  //   backgroundColor: droppableBgColor || '#f8f8f8',
+  //   padding: '16px',
+  //   display: 'flex',
+  //   flexWrap: 'wrap',
+  //   gap: '20px',
+  //   width: '100%',
+  //   height: 'calc(100vh - 200px)',
+  //   fontFamily: fontStyle || 'Segoe UI, sans-serif',
+  //   overflowY: 'auto',
+  //   // border: '1px solid #ccc',
+  //   // borderRadius: '2px',
+  //   boxSizing: 'border-box',
+  //   scrollbarColor: '#ccc transparent',
+  //   scrollbarWidth: 'thin',
+  // }}
   style={{
-    position: 'relative',
-    backgroundColor: droppableBgColor || '#f8f8f8',
-    padding: '16px',
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '20px',
-    width: '100%',
-    height: 'calc(100vh - 200px)',
-    fontFamily: fontStyle || 'Segoe UI, sans-serif',
-    overflowY: 'auto',
-    // border: '1px solid #ccc',
-    // borderRadius: '2px',
-    boxSizing: 'border-box',
-    scrollbarColor: '#ccc transparent',
-    scrollbarWidth: 'thin',
+    position: "relative",
+    backgroundColor: wallpaper ? 'transparent' : droppableBgColor, // ✅ fallback color if no wallpaper
+    backgroundImage: wallpaper ? `url(${wallpaper})` : 'none', // ✅ use image if available
+    backgroundSize: 'cover', // ✅ ensures the image covers entire area
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    minHeight: "85.9vh",
+    display: "flex",
+    flexWrap: "wrap",
+    overflow: "hidden",
+    width:"100%",
+    marginRight: 0,
+    transition: "width 0.3s ease",
+    height: "calc(100vh - 200px)",
   }}
 >
 
@@ -754,6 +772,29 @@ disableDragging={true}
                    opacity={chart.opacity}
                    calculationData={chart.calculationData}
                    selectedFrequency={chart.selectedFrequency}
+                />
+                 )}
+               {chart.chart_type === 'funnel' && (
+                <FunnelChart
+                  categories={chart.categories}
+                  values={chart.values}
+                  x_axis={chart.x_axis}
+                  y_axis={chart.y_axis}
+                  aggregation={chart.aggregate} 
+                  xFontSize={chart.xfontsize} 
+                  fontStyle={chart.fontstyle} 
+                  categoryColor={chart.categorycolor}
+                   yFontSize={chart.yfontsize} 
+                   valueColor={chart.valuecolor} 
+                   customHeadings={chart.chart_heading} 
+                  width={chart.size?.width}
+                  height={chart.size?.height}
+                  chartColor={chart.chart_color}
+                  headingColor={chart.headingColor}
+                  ClickedTool={chart.ClickedTool}
+                  areaColor={chart.Bgcolour}
+                   opacity={chart.opacity}
+                   calculationData={chart.calculationData}
                 />
               )}
             </BorderWrapper>

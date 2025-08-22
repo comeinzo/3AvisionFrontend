@@ -404,6 +404,7 @@ console.log("  sortedValues:", sortedValues);
     setSortedValues(values);
     setIsFiltered(false);
     setShowResetButton(false);
+    setBarColorState(Array(categories.length).fill(areaColorFromDashboard));
 
   };
 

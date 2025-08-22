@@ -44,9 +44,10 @@ const viewChartSlice = createSlice({
       state.chartFilter={};
       state.droppableBgColor=[];
       state.imagePositions=[];
-      state.setFontStyleLocal=[];
-      state.setFontColor=[];
-      state.setFontSize=[];
+        state.setFontStyleLocal=32;
+      state.fontColor='black';
+      state.fontSize='normal';
+      state.wallpaper=null
       console.log("Dashboard Charts Cleared", state.dashboard_charts);
     },
 

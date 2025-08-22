@@ -13,7 +13,8 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 // import { signIn, fetchCompanies } from '../../utils/api';
 import { MenuItem, FormControl, FormLabel, Select,Fade,  Link as MuiLink,
-  Divider, } from '@mui/material';
+Divider,Dialog,DialogTitle,DialogContent,DialogActions,InputLabel } from '@mui/material';
+  import { Business, Email, Lock } from "@mui/icons-material"; // icons for better UX
 import Card from '@mui/material/Card'; // Importing the Card for the styled UI component
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -43,7 +44,11 @@ export default function SignIn() {
   const [companyError, setCompanyError] = useState(false);
   const [companyErrorMessage, setCompanyErrorMessage] = useState('');
   const [loading, setLoading] = useState(false);
-  
+   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+const [resetEmail, setResetEmail] = useState("");
+const [resetPassword, setResetPassword] = useState("");
+  const [resetType, setResetType] = useState("employee"); // default employee
+
 // const handleSubmit = async (event) => {
 //   event.preventDefault();
  
@@ -551,6 +556,14 @@ export default function SignIn() {
                     ),
                   }}
                 />
+  <Typography
+  variant="body2"
+  align="right"
+  sx={{ cursor: "pointer", color: "primary.main" }}
+  onClick={() => setForgotPasswordOpen(true)}
+>
+  Forgot password?
+</Typography>
 
                 <Button
                   type="submit"
@@ -579,6 +592,118 @@ export default function SignIn() {
                 © {new Date().getFullYear()} 3A Vision · All rights reserved
               </Typography>
             </Card>
+<Dialog
+  open={forgotPasswordOpen}
+  onClose={() => setForgotPasswordOpen(false)}
+  maxWidth="sm"
+  fullWidth
+>
+  {/* 🔹 Title */}
+  <DialogTitle
+    sx={{
+      fontWeight: "bold",
+      display: "flex",
+      alignItems: "center",
+      gap: 1,
+    }}
+  >
+    <Email color="primary" /> Reset Password
+  </DialogTitle>
+
+  {/* 🔹 Content */}
+  <DialogContent dividers>
+    <Typography variant="body1" sx={{ mb: 3, color: "text.secondary" }}>
+      Please select whether you want to reset an <b>Employee</b> or <b>Company</b> password.
+    </Typography>
+
+    {/* 🔹 Reset Type */}
+    <FormControl fullWidth sx={{ mb: 3 }}>
+      <InputLabel>Reset Type</InputLabel>
+      <Select
+        value={resetType}
+        onChange={(e) => setResetType(e.target.value)}
+        startAdornment={<Email sx={{ mr: 1, color: "action.active" }} />}
+      >
+        <MenuItem value="employee">👤 Employee</MenuItem>
+        <MenuItem value="company">🏢 Company</MenuItem>
+      </Select>
+    </FormControl>
+
+    {/* 🔹 Company Selection */}
+    <FormControl fullWidth sx={{ mb: 3 }}>
+      <InputLabel>Company</InputLabel>
+      <Select
+        value={selectedCompany}
+        onChange={(e) => setSelectedCompany(e.target.value)}
+        displayEmpty
+      >
+        <MenuItem disabled value="">
+          <em>Select a Company</em>
+        </MenuItem>
+        {companies.map((company) => (
+          <MenuItem key={company.id} value={company.name}>
+            {company.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+
+    {/* 🔹 Email Input */}
+    <TextField
+      fullWidth
+      type="email"
+      label={resetType === "employee" ? "Employee Email" : "Company Email"}
+      value={resetEmail}
+      onChange={(e) => setResetEmail(e.target.value)}
+      sx={{ mb: 3 }}
+      InputProps={{
+        startAdornment: <Email sx={{ mr: 1, color: "action.active" }} />,
+      }}
+    />
+  </DialogContent>
+
+  {/* 🔹 Actions */}
+  <DialogActions sx={{ p: 2 }}>
+    <Button
+      onClick={() => setForgotPasswordOpen(false)}
+      variant="outlined"
+      color="secondary"
+    >
+      Cancel
+    </Button>
+    <Button
+      variant="contained"
+      color="primary"
+      onClick={async () => {
+        try {
+          const payload = {
+            email: resetEmail,
+            company: selectedCompany,
+            type: resetType,
+          };
+
+          await axios.post("http://localhost:5000/api/request_password_reset", payload);
+
+          setErrorMessage("✅ Reset link sent to your email.");
+          setOpen(true);
+          setForgotPasswordOpen(false);
+
+          // reset state
+          setResetEmail("");
+          setSelectedCompany("");
+          setResetType("employee");
+        } catch (err) {
+          setErrorMessage(
+            err.response?.data?.message || "❌ Failed to send reset link."
+          );
+          setOpen(true);
+        }
+      }}
+    >
+      Send Reset Link
+    </Button>
+  </DialogActions>
+</Dialog>
 
             <Snackbar open={open} autoHideDuration={6000} onClose={() => setOpen(false)}>
               <Alert onClose={() => setOpen(false)} severity="error" sx={{ width: '100%' }}>

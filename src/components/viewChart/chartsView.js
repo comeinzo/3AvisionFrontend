@@ -47,10 +47,11 @@ const contrastIconColor = getContrastColor(appBarColor);
     height: window.innerHeight,
   });
  useEffect(() => {
-    // Dispatch the action to set dataLabels to true when the component mounts
-    dispatch(toggleDataLabels("true"));
-  }, [dispatch]); // The dependency array ensures it runs once on mount
-
+      // Dispatch the action to set dataLabels to true when the component mounts
+        dispatch(toggleDataLabels(true));
+      console.log("Data labels enabled on component mount");
+    }, [dispatch]); // The dependency array ensures it runs once on mount
+  
    useEffect(() => {
         // Push current state so back button doesn't exit
         window.history.pushState(null, "", window.location.href);
