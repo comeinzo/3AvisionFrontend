@@ -236,6 +236,8 @@ const ProjectGridView = ({ projectNames, setViewMode, selectedProject, setSelect
   const handleDeleteConfirm = () => {
     if (chartToDelete) {
       const { index, chartName } = chartToDelete;
+      
+      console.log("chartname",chartName)
       dispatch(deletedashboard(chartName,user_id,company_name))
         .then(() => {
           const updatedCharts = charts.filter((_, idx) => idx !== index);

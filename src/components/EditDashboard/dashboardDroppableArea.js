@@ -263,7 +263,7 @@ const [alignmentLines, setAlignmentLines] = useState({
   
       {/* Dashboard Heading - Placed above the droppable area */}
       {dashboardHeading && (
-        <div style={{ padding: '30px', backgroundColor: droppableBgColor || '#f8f8f8' }}>
+        <div style={{ padding: '20px', backgroundColor: droppableBgColor || '#f8f8f8' }}>
           <Typography
             variant="h4"
             sx={{

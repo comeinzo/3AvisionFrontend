@@ -2218,7 +2218,7 @@ useEffect(() => {
               {/* Action Buttons */}
               {selectedTable && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mt: 2 }}>
-                  {!(enableDateFilter || enableColumnFilter || enableColumnConditions) && (
+                  {!(isDateFilterComplete || isColumnFilterComplete || isColumnConditionsComplete) && (
  
                   <Button
                     variant="contained"
@@ -2252,7 +2252,7 @@ useEffect(() => {
                   </Button>
                   )}
                   {/* Create View Button */}
-                  {(enableDateFilter || enableColumnFilter || enableColumnConditions) && (
+                  {(isDateFilterComplete || isColumnFilterComplete || isColumnConditionsComplete) && (
  
                   <Button
                     variant="outlined"

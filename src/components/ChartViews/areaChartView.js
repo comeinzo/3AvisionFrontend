@@ -164,7 +164,13 @@ console.log("Contrast color is", getContrastColor(areaColor));  // Should log 'w
         chart: {
             background:areaColor,
             events: {
-                dataPointSelection: handleClicked,
+                // dataPointSelection: handleClicked,
+                 click: (event, chartContext, config) => {
+      const { dataPointIndex } = config;
+      if (dataPointIndex !== -1) {
+        handleClicked(event, chartContext, config);
+      }
+      }
             },
             toolbar: {
                 show: false,

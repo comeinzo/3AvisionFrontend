@@ -235,7 +235,13 @@ const handlePredictData = async () => {
             id: "basic-line",
             background:areaColor,
             events: {
-                dataPointSelection: handleClicked,
+                // dataPointSelection: handleClicked,
+                 click: (event, chartContext, config) => {
+      const { dataPointIndex } = config;
+      if (dataPointIndex !== -1) {
+        handleClicked(event, chartContext, config);
+      }
+    },
                 zoomed: function (_, { xaxis }) {
                     if (isDateCategorylabel) {
                       const range = xaxis.max - xaxis.min;

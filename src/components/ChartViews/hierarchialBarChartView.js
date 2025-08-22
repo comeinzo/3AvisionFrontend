@@ -934,7 +934,7 @@ const D3HierarchialBarChart = ({
         const sortedData = processedCategories
             .map((category, index) => ({ category, value: processedValues[index] }))
             .sort((a, b) => b.value - a.value);
-
+        
         const sortedCategories = sortedData.map((d) => d.category);
         const sortedValues = sortedData.map((d) => d.value);
 
@@ -944,7 +944,12 @@ const D3HierarchialBarChart = ({
             top: 50,
             right: 40,
             bottom: 20,
-            left: Math.max(100, d3.max(sortedCategories, d => d.length) * (parseFloat(yFontSize) * 0.4) || 100)
+            // left: Math.max(100, d3.max(sortedCategories, d => d.length) * (parseFloat(yFontSize) * 0.4) || 100)
+            left: Math.max(
+  100,
+  (d3.max(sortedCategories, d => (d ? d.length : 0)) || 0) * (parseFloat(yFontSize) * 0.4 || 1)
+)
+
         };
         const adjustedWidth = effectiveChartWidth - margin.left - margin.right;
         const adjustedHeight = effectiveChartHeight - margin.top - margin.bottom - (parsedHeading ? 100 : 10);
@@ -978,7 +983,13 @@ const D3HierarchialBarChart = ({
         g.append('g')
             .call(d3.axisLeft(y).tickSizeOuter(0))
             .selectAll('text')
-            .text((d) => (d.length > 9 ? d.substring(0, 8) + "..." : d))
+            // .text((d) => (d.length > 9 ? d.substring(0, 8) + "..." : d))
+            .text((d) => {
+  if (!d) return ""; // guard null/undefined
+  const str = String(d); // force into string
+  return str.length > 9 ? str.substring(0, 8) + "..." : str;
+})
+
             .style('font-size', `${yFontSize}px`)
             .style('fill', resolvedValueColor)
             .style('font-family', fontStyle);

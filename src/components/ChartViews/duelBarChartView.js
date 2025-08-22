@@ -105,73 +105,111 @@ function hexToRGBA(hex, opacity) {
         
 //           };
 
-const handleClicked = async (event, chartContext, config) => {
-              const clickedCategoryIndex = config.dataPointIndex;
-              if (clickedCategoryIndex === -1) {
-                dispatch(updateSelectedCategory(null)); // Reset selection when clicking outside
-                return;
-              }
-              const clickedCategory = categories[clickedCategoryIndex];
-              console.log('clicked category:', clickedCategory);
-              try {
-                // const response = await sendClickedCategory(clickedCategory, charts, x_axis[0],calculationData);
-                // console.log('chart_data_list:', response.chart_data_list);
-                // // response.chart_data_list.forEach((chartData) => {
-                // //   const { chart_id, data } = chartData;
-                // //   dispatch(
-                // //     updateDashboardChartData({
-                // //       chart_id,
-                // //       categories: data.categories,
-                // //       values: data.values,
-                // //       series1: data.series1,
-                // //       series2: data.series2,
-                // //       chartColor: data.chartColor,
-                // //     })    
-                // //   );
-                //  response.chart_data_list.forEach((chartData) => {
-                //   const { chart_id, data } = chartData;
-                //   if (data && data.categories &&data.series1 && data.series2) {
-                //     dispatch(
-                //       updateDashboardChartData({
-                //         chart_id,
-                //         categories: data.categories,
-                //         values: data.values,
-                //         series1: data.series1,
-                //         series2: data.series2,
-                //         chartColor: data.chartColor,
-                //       })
-                //     );
-                //   } else {
-                //     console.warn(`No data found for chart_id ${chart_id}, skipping update.`);
-                //   }
+// const handleClicked = async (event, chartContext, config) => {
+//               const clickedCategoryIndex = config.dataPointIndex;
+//               if (clickedCategoryIndex === -1) {
+//                 dispatch(updateSelectedCategory(null)); // Reset selection when clicking outside
+//                 return;
+//               }
+//               const clickedCategory = categories[clickedCategoryIndex];
+//               console.log('clicked category:', clickedCategory);
+//               try {
+//                 // const response = await sendClickedCategory(clickedCategory, charts, x_axis[0],calculationData);
+//                 // console.log('chart_data_list:', response.chart_data_list);
+//                 // // response.chart_data_list.forEach((chartData) => {
+//                 // //   const { chart_id, data } = chartData;
+//                 // //   dispatch(
+//                 // //     updateDashboardChartData({
+//                 // //       chart_id,
+//                 // //       categories: data.categories,
+//                 // //       values: data.values,
+//                 // //       series1: data.series1,
+//                 // //       series2: data.series2,
+//                 // //       chartColor: data.chartColor,
+//                 // //     })    
+//                 // //   );
+//                 //  response.chart_data_list.forEach((chartData) => {
+//                 //   const { chart_id, data } = chartData;
+//                 //   if (data && data.categories &&data.series1 && data.series2) {
+//                 //     dispatch(
+//                 //       updateDashboardChartData({
+//                 //         chart_id,
+//                 //         categories: data.categories,
+//                 //         values: data.values,
+//                 //         series1: data.series1,
+//                 //         series2: data.series2,
+//                 //         chartColor: data.chartColor,
+//                 //       })
+//                 //     );
+//                 //   } else {
+//                 //     console.warn(`No data found for chart_id ${chart_id}, skipping update.`);
+//                 //   }
           
-                // });
-               const response = await sendClickedCategory(clickedCategory, charts, x_axis[0],calculationData);
-                        console.log('chart_data_list:', response.chart_data_list);
-                        response.chart_data_list.forEach((chartData) => {
-                          const { chart_id, data } = chartData;
-                          dispatch(
-                            updateDashboardChartData({
-                              chart_id,
-                              categories: data.categories,
-                              values: data.values,
-                              series1: data.series1,
-                              series2: data.series2,
-                              chartColor: data.chartColor,
-                            })    
-                          );
+//                 // });
+//                const response = await sendClickedCategory(clickedCategory, charts, x_axis[0],calculationData);
+//                         console.log('chart_data_list:', response.chart_data_list);
+//                         response.chart_data_list.forEach((chartData) => {
+//                           const { chart_id, data } = chartData;
+//                           dispatch(
+//                             updateDashboardChartData({
+//                               chart_id,
+//                               categories: data.categories,
+//                               values: data.values,
+//                               series1: data.series1,
+//                               series2: data.series2,
+//                               chartColor: data.chartColor,
+//                             })    
+//                           );
                   
-                        });
+//                         });
                       
-              } catch (error) {
-                console.error(`Failed to send category ${clickedCategory}:`, error);
-              }
-              console.log("clickedCategory12365447",clickedCategory)
-              dispatch(updateSelectedCategory(clickedCategory));
+//               } catch (error) {
+//                 console.error(`Failed to send category ${clickedCategory}:`, error);
+//               }
+//               console.log("clickedCategory12365447",clickedCategory)
+//               dispatch(updateSelectedCategory(clickedCategory));
           
           
-            };
-    
+//             };
+    const handleClicked = async (event, chartContext, config) => {
+  const { seriesIndex, dataPointIndex, w } = config;
+
+  // category on x-axis
+  const clickedCategory = w.globals.labels[dataPointIndex];
+  // series name (like Credit Card, Debit Card…)
+  const clickedSeries = w.globals.seriesNames[seriesIndex];
+
+  console.log("Clicked Category:", clickedCategory);
+  console.log("Clicked Series:", clickedSeries);
+
+  try {
+    const response = await sendClickedCategory(
+      clickedCategory,   // parent x-axis value
+      charts,
+      x_axis[0],
+      calculationData
+    );
+
+    response.chart_data_list.forEach((chartData) => {
+      const { chart_id, data } = chartData;
+      dispatch(
+        updateDashboardChartData({
+          chart_id,
+          categories: data.categories,
+          values: data.values,
+          series1: data.series1,
+          series2: data.series2,
+          chartColor: data.chartColor,
+        })
+      );
+    });
+  } catch (error) {
+    console.error(`Failed to send category ${clickedCategory}:`, error);
+  }
+
+  dispatch(updateSelectedCategory(clickedCategory));
+};
+
 
     console.log("chartColor:", chartColor);
     let parsedHeading = customHeadings;

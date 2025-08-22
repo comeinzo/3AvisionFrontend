@@ -9,7 +9,9 @@ import DraggableChartButton from './DraggableChartButton';
 import DroppableArea from './DroppableArea';
 import ResizableChart from './ResizableChart';
 import { saveAllCharts, fetchSingleChartData, checkFileNameExists } from '../../utils/api';
-import { Box,Divider,CircularProgress, Grid,Paper, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, IconButton, Tooltip } from "@mui/material";
+import { Box,Divider,CircularProgress, Grid,Paper, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField, Typography, IconButton, Tooltip, Stepper,
+  Step,
+  StepLabel, } from "@mui/material";
 import PaletteIcon from '@mui/icons-material/Palette';
 import { useRef } from 'react';
 import {useNavigate} from "react-router";
@@ -27,7 +29,7 @@ import AlertDialog from '../DashboardActions/ConfirmationDialog'; // Import the 
 // Import API functions
 import {getContrastColor } from '../../utils/colorUtils';
 import { lighten } from "@mui/material/styles";
-
+import CloseIcon from "@mui/icons-material/Close";
 import {
   toggleDataLabels,
 } from "../../features/viewDashboardSlice/viewDashboardSlice";
@@ -63,7 +65,71 @@ const [dialogOpen, setDialogOpen] = useState(false);
 const [dialogTitle, setDialogTitle] = useState('');
 const [dialogMessage, setDialogMessage] = useState('');
 const [dialogType, setDialogType] = useState('success'); // 'success', 'error', etc.
+  const steps = ["Heading", "Project Name", "Dashboard Name"];
+  const [activeStep, setActiveStep] = useState(0);
+  const [touched, setTouched] = useState(false);
+    const inputRef = useRef(null);
 const navigate = useNavigate(); // Initialize useNavigate
+const fieldForStep = useMemo(() => {
+    if (activeStep === 0)
+      return {
+        label: "Dashboard Heading",
+        value: heading,
+        set: setHeading,
+        helper: "This heading appears at the top of the dashboard",
+      };
+    if (activeStep === 1)
+      return {
+        label: "Project Name",
+        value: projectName,
+        set: setProjectName,
+        helper: "Which project does this dashboard belong to?",
+      };
+    return {
+      label: "Dashboard Name",
+      value: dashboardName,
+      set: setDashboardName,
+      helper: "Give your dashboard a unique name",
+    };
+  }, [activeStep, heading, projectName, dashboardName, setHeading, setProjectName, setDashboardName]);
+
+  const isCurrentValid = fieldForStep.value?.trim().length > 0;
+  const isLastStep = activeStep === steps.length - 1;
+
+  // Autofocus on step change / dialog open
+  useEffect(() => {
+    if (openDialog) {
+      // small delay so the input is mounted
+      const t = setTimeout(() => inputRef.current?.focus(), 0);
+      return () => clearTimeout(t);
+    }
+  }, [activeStep, openDialog]);
+
+  const handleNext = () => {
+    setTouched(true);
+    if (!isCurrentValid) return;
+    if (isLastStep) {
+      // Final save
+      handleDialogClose(true);
+      setActiveStep(0);
+      setTouched(false);
+      return;
+    }
+    setActiveStep((s) => s + 1);
+    setTouched(false);
+  };
+
+  const handleBack = () => {
+    setActiveStep((s) => Math.max(0, s - 1));
+    setTouched(false);
+  };
+
+  const handleCancel = () => {
+    setActiveStep(0);
+    setTouched(false);
+    handleDialogClose(false);
+  };
+
 useEffect(() => {
   const handlePopState = () => {
     navigate('/Design-page');
@@ -167,6 +233,9 @@ const contrastIconColor = getContrastColor(appBarColor);
 //         setLoadingChartsList(false);
 //       });
 //   }, [dispatch, user_id]);
+ const isSaveDisabled =
+    !projectName.trim() || !dashboardName.trim() || !heading.trim();
+
  useEffect(() => {
     // Dispatch the action to set dataLabels to true when the component mounts
      dispatch(toggleDataLabels(true));
@@ -774,7 +843,7 @@ flexDirection: "column",   // 👈 stack vertically
    
         {error && <div className="error-message">{error}</div>}
 
-        {/* Save Dialog */}
+        {/* Save Dialog
         <Dialog open={openDialog} onClose={() => handleDialogClose(false)}>
           <DialogTitle>Save Dashboard</DialogTitle>
           <DialogContent>
@@ -808,6 +877,69 @@ flexDirection: "column",   // 👈 stack vertically
             <Button onClick={() => handleDialogClose(true)} color="primary">Save</Button>
           </DialogActions>
         </Dialog>
+         */}
+    <Dialog
+      open={openDialog}
+      onClose={handleCancel}
+      maxWidth="sm"
+      fullWidth
+    >
+      <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <Typography variant="h6" fontWeight="bold">Save Dashboard</Typography>
+        <IconButton onClick={handleCancel} size="small"><CloseIcon /></IconButton>
+      </DialogTitle>
+
+      <DialogContent dividers>
+        <Box sx={{ mb: 2 }}>
+          <Stepper activeStep={activeStep} alternativeLabel>
+            {steps.map((label) => (
+              <Step key={label}><StepLabel>{label}</StepLabel></Step>
+            ))}
+          </Stepper>
+        </Box>
+
+        <Box sx={{ mt: 1 }}>
+          <TextField
+            inputRef={inputRef}
+            autoComplete="off"
+            fullWidth
+            required
+            label={fieldForStep.label}
+            value={fieldForStep.value}
+            onChange={(e) => fieldForStep.set(e.target.value)}
+            onBlur={() => setTouched(true)}
+            margin="dense"
+            helperText={
+              !isCurrentValid && touched
+                ? `${fieldForStep.label} is required`
+                : fieldForStep.helper
+            }
+            error={!isCurrentValid && touched}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                handleNext();
+              }
+            }}
+          />
+        </Box>
+      </DialogContent>
+
+      <DialogActions sx={{ px: 3, py: 2 }}>
+        <Button onClick={handleCancel} variant="outlined">Cancel</Button>
+        <Box sx={{ flex: 1 }} />
+        <Button onClick={handleBack} variant="text" disabled={activeStep === 0}>
+          Back
+        </Button>
+        <Button
+          onClick={handleNext}
+          variant="contained"
+          disabled={!isCurrentValid}
+        >
+          {isLastStep ? "Save" : "Next"}
+        </Button>
+      </DialogActions>
+    </Dialog>
 
         {/* Chart Limit Dialog */}
         <Dialog open={isLimitDialogOpen} onClose={handleCloseLimitDialog}>
